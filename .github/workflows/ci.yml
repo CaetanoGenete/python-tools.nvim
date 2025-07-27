@@ -18,6 +18,7 @@ jobs:
             install-uv: pipx install uv
             install-luals: brew install lua-language-server
           - os: windows-2022
+            install-uv: choco install uv
             install-luals: choco install lua-language-server
 
     steps:
