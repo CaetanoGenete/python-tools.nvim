@@ -2,7 +2,7 @@
 
 local luarc = {
 	runtime = {
-		version = "Lua 5.4",
+		version = "LuaJIT 2.1",
 	},
 	workspace = {
 		library = vim.api.nvim_get_runtime_file("", true),

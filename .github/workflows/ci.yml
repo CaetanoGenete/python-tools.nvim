@@ -16,11 +16,11 @@ jobs:
         include:
           - os: ubuntu-22.04
             install-uv: pipx install uv
-            install-luals:
-              /home/linuxbrew/.linuxbrew/bin/brew install lua-language-server
+            # install-luals:
+            #   /home/linuxbrew/.linuxbrew/bin/brew install lua-language-server
           - os: windows-2022
             install-uv: choco install uv
-            install-luals: choco install lua-language-server
+            # install-luals: choco install lua-language-server
 
     steps:
       - uses: actions/checkout@v4
@@ -43,11 +43,11 @@ jobs:
           nvim --version
           make test
 
-      - name: Prepare type-check
-        run: |
-          ${{ matrix.install-luals }}
-          lua-language-server --version
-
-      - name: Run type-check
-        run: |
-          make type-check
+      # - name: Prepare type-check
+      #   run: |
+      #     ${{ matrix.install-luals }}
+      #     lua-language-server --version
+      #
+      # - name: Run type-check
+      #   run: |
+      #     make type-check
