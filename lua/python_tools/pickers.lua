@@ -15,9 +15,6 @@ local ep_tools = require("python_tools.entry_points")
 ---Maximum display width for entry-point group. Defaults `12`.
 ---@field group_max_width integer?
 ---Defaults to `⎸`.
----@field group_separator string?
----If empty, pick from all available groups. Otherwise show only the provided
----`group`. Defaults to `nil`.
 ---@field group string?
 ---The duration in milliseconds for which an entry should be selected, before
 ---the entry-point location is fetched. Defaults to `20`.
@@ -31,7 +28,6 @@ local ep_tools = require("python_tools.entry_points")
 ---@type EntryPointPickerOptions
 local DEFAULT_EP_PICKER_CONFIG = {
 	group_max_width = 12,
-	group_separator = "⎸",
 	debounce_duration_ms = 50,
 	select_timeout_ms = 2000,
 	preview = {},
