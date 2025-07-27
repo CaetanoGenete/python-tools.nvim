@@ -1,5 +1,8 @@
 local async = require("python_tools.utils._async")
 
+---@diagnostic disable-next-line: deprecated
+local unpack = unpack or table.unpack
+
 local M = {}
 
 ---@param script string The script to invoke.

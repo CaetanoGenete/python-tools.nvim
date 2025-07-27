@@ -1,7 +1,11 @@
-local M = {}
+---@diagnostic disable: undefined-field
 
+---@diagnostic disable-next-line: deprecated
+local unpack = unpack or table.unpack
 -- Bad things seem to happen if the coroutine is resumed in the fast-loop.
 local safe_resume = vim.schedule_wrap(coroutine.resume)
+
+local M = {}
 
 local wrap = function(callback_fn, exp_args)
 	---@async

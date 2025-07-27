@@ -2,3 +2,6 @@
 __pycache__
 .venv*
 *.egg-info
+
+# generated files
+.luarc-ci.json

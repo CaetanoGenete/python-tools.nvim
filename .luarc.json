@@ -1,7 +1,0 @@
-{
-  "hint": {
-    "await": true,
-    "awaitPropogate": true,
-    "enable": true
-  }
-}
