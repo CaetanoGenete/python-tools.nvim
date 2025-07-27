@@ -1,5 +1,8 @@
 local M = {}
 
+-- Bad things seem to happen if the coroutine is resumed in the fast-loop.
+local safe_resume = vim.schedule_wrap(coroutine.resume)
+
 local wrap = function(callback_fn, exp_args)
 	---@async
 	local function async_fn(...)
@@ -20,7 +23,7 @@ local wrap = function(callback_fn, exp_args)
 			callback_ret = { ... }
 
 			if coroutine.status(coro) == "suspended" then
-				coroutine.resume(coro)
+				safe_resume(coro)
 			end
 		end)
 
@@ -103,7 +106,7 @@ end
 M.run_callback = function(async_function, callback, ...)
 	M.run(function(...)
 		local ok, result = pcall(async_function, ...)
-		vim.schedule_wrap(callback)(ok, result)
+		callback(ok, result)
 	end, ...)
 end
 

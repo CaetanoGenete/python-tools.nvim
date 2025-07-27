@@ -20,7 +20,7 @@ if __name__ == "__main__":
         else:
             eps = entry_points().get(group, [])
     else:
-        if sys.version_info >= (3, 11):
+        if sys.version_info >= (3, 12):
             eps = entry_points()
         else:
             eps = chain(*entry_points().values())

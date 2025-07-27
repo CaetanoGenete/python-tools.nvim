@@ -48,7 +48,7 @@ local M = {}
 ---@param winid integer
 ---@param bufnr integer
 ---@param lnum integer?
-local jump_to_line = function(winid, bufnr, lnum)
+local function jump_to_line(winid, bufnr, lnum)
 	pcall(vim.api.nvim_buf_clear_namespace, bufnr, ns_previewer, 0, -1)
 	if lnum == nil or lnum == 0 then
 		return
@@ -115,7 +115,6 @@ local function pick_entry_point(eps, opts)
 	end
 
 	local displayer = entry_display.create({
-		separator = opts.group_separator,
 		items = {
 			{ width = group_width },
 			{ remaining = true },

@@ -10,7 +10,7 @@ local function make_ascript(script)
 
 	---@async
 	return function(...)
-		local result = async.system({ "python", path, ... }, { text = true, timeout = 5000 })
+		local result = async.system({ vim.g.python or "python", path, ... }, { text = true, timeout = 5000 })
 		assert(result.code == 0, "Python subprocess failed! " .. result.stderr)
 		return result.stdout
 	end
@@ -111,8 +111,10 @@ local aentry_point_location_importlib = function(name, group)
 	return vim.json.decode(result)
 end
 
+---Find entry-point definition in source.
 ---@async
 ---@param def EntryPointDef
+---@return string? path, integer lineno
 M.aentry_point_location = function(def)
 	-- Try to use tree-sitter implementation first, then fallback to importlib
 	-- upon failure.
