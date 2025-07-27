@@ -15,7 +15,7 @@ jobs:
         rev: [v0.11.0]
         include:
           - os: ubuntu-22.04
-            install-uv: sudo apt-get update && sudo apt-get install -y uv
+            install-uv: pipx install uv
           - os: windows-2022
             install-uv: choco install uv
 

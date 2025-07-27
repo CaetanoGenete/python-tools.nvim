@@ -14,7 +14,9 @@ end
 vim.cmd("runtime! plugin/plenary.vim")
 require("nvim-treesitter").setup()
 
--- vim.cmd("TSInstallSync! python")
+if not require("nvim-treesitter.parsers").has_parser("python") then
+	vim.cmd("TSInstallSync! python")
+end
 
 if vim.fn.has("win32") == 1 then
 	vim.g.python = "./test/mock-repo/.venv/Scripts/python.exe"
