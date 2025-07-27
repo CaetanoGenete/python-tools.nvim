@@ -8,4 +8,3 @@ $(patsubst %, test-%, $(supported-versions)):
 	nvim --headless --noplugin -u scripts/minimal_init.lua -c "PlenaryBustedDirectory test { minimal_init = './scripts/minimal_init.lua' }"
 
 test: $(patsubst %, test-%, $(supported-versions))
-

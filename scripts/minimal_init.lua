@@ -1,8 +1,15 @@
 local joinpath = vim.fs.joinpath
-local lazy_path = joinpath(vim.fn.stdpath("data"), "lazy")
 
-vim.opt.rtp:append(joinpath(lazy_path, "plenary.nvim"))
-vim.opt.rtp:append(joinpath(lazy_path, "treesitter"))
+local plugin_path = os.getenv("TEST_PLUGIN_PATH")
+if not plugin_path then
+	-- Default to lazy default install path
+	plugin_path = joinpath(vim.fn.stdpath("data"), "lazy")
+end
+
+local plugins = { "plenary.nvim", "treesitter" }
+for _, plugin in ipairs(plugins) do
+	vim.opt.rtp:append(joinpath(plugin_path, plugin))
+end
 
 vim.cmd("runtime! plugin/plenary.vim")
 require("nvim-treesitter").setup()

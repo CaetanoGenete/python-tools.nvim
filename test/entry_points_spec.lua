@@ -63,5 +63,15 @@ describe("Test entry points:", function()
 				assert.same({ expected_path, case.expected_lineno }, { vim.fs.normalize(actual_path), lineno })
 			end)
 		end
+
+		it("should fail for `ep5`", function()
+			local def = {
+				name = "ep5",
+				group = "console_scripts",
+				value = { "hello", "no_such_function" },
+			}
+			local ok = pcall(ep.aentry_point_location, def)
+			assert.are_false(ok)
+		end)
 	end)
 end)
