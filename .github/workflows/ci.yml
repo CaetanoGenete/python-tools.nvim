@@ -33,7 +33,7 @@ jobs:
           uv --version
 
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim
-          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ../nvim-treesitter
+          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ../treesitter
 
       - name: Run tests
         run: |
