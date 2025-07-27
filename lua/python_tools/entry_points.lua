@@ -29,7 +29,7 @@ local afind_entry_point_origin = make_ascript("find_entry_point_origin.py")
 ---@async
 ---@param group string? If non-nil, only selects entry-points in this group.
 ---@return EntryPointDef[]
-M.aentrypoints = function(group)
+M.aentry_points = function(group)
 	local args = {}
 	if group ~= nil then
 		args = { group }

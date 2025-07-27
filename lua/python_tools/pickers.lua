@@ -257,7 +257,7 @@ M.find_entry_points = function(opts)
 	end
 
 	vim.notify("Fetching entry-points from environment...", vim.log.levels.INFO)
-	async.run_callback(ep_tools.aentrypoints, on_endpoints, opts.group)
+	async.run_callback(ep_tools.aentry_points, on_endpoints, opts.group)
 end
 
 return M
