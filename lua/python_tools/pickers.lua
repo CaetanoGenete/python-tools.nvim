@@ -14,7 +14,7 @@ local ep_tools = require("python_tools.entry_points")
 ---@class	EntryPointPickerOptions
 ---Maximum display width for entry-point group. Defaults `12`.
 ---@field group_max_width integer?
----Defaults to `⎸`.
+---Defaults to `nil`.
 ---@field group string?
 ---The duration in milliseconds for which an entry should be selected, before
 ---the entry-point location is fetched. Defaults to `20`.
@@ -201,7 +201,7 @@ local function pick_entry_point(eps, opts)
 
 			local start_time = os.clock()
 			-- Block for for `timeout` or until fetching entry-point finishes.
-			while entry.state == "pending" do
+			while entry.state ~= "done" do
 				vim.notify("Looking for entry-point's origin, please wait...")
 				if (os.clock() - start_time) > select_timeout_s then
 					break
