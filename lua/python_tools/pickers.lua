@@ -97,9 +97,15 @@ local function render_entry(state, entry, opts)
 	end
 end
 
+local function clear_cmdline()
+	vim.api.nvim_echo({ { "" } }, false, {})
+end
+
 ---@param eps EntryPointDef[]
 ---@param opts EntryPointPickerOptions picker options.
 local function pick_entry_point(eps, opts)
+	clear_cmdline()
+
 	local group_width = 0
 	for _, ep in ipairs(eps) do
 		local len = #ep.group
@@ -204,6 +210,7 @@ local function pick_entry_point(eps, opts)
 			end
 
 			if entry.filename ~= nil then
+				clear_cmdline()
 				action_set.edit(prompt_bufnr, action_state.select_key_to_edit_key(type))
 				return
 			end
