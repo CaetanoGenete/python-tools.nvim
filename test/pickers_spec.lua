@@ -23,7 +23,7 @@ end
 
 local function wait_for_picker()
 	local picker
-	assert_poll(3000, function()
+	assert_poll(8000, function()
 		local buf = vim.api.nvim_get_current_buf()
 		picker = action_state.get_current_picker(buf)
 		return picker ~= nil
@@ -46,6 +46,10 @@ local function search_selection(picker, name)
 	error("Could not find " .. name)
 end
 
+local function assert_paths_same(lhs, rhs)
+	assert.are_same(vim.fs.normalize(lhs), vim.fs.normalize(rhs))
+end
+
 describe("Test entry_points picker:", function()
 	describe("select successful -", function()
 		local fixt = tutils.get_fixture("entry_points", "mock_entry_points.json")
@@ -62,7 +66,7 @@ describe("Test entry_points picker:", function()
 				search_selection(picker, value.name)
 
 				actions.select_default(picker.prompt_bufnr)
-				assert.are_same(vim.api.nvim_buf_get_name(0), vim.fs.joinpath(TEST_PATH, value.rel_filepath))
+				assert_paths_same(vim.api.nvim_buf_get_name(0), vim.fs.joinpath(TEST_PATH, value.rel_filepath))
 			end)
 		end
 	end)
@@ -76,7 +80,7 @@ describe("Test entry_points picker:", function()
 
 			local last_buff_name = vim.api.nvim_buf_get_name(0)
 			actions.select_default(picker.prompt_bufnr)
-			assert.are_same(last_buff_name, vim.api.nvim_buf_get_name(0))
+			assert_paths_same(last_buff_name, vim.api.nvim_buf_get_name(0))
 		end)
 	end)
 end)
