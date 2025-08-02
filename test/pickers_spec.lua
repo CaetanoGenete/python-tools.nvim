@@ -7,6 +7,9 @@ local pickers = require("python_tools.pickers")
 local action_state = require("telescope.actions.state")
 local actions = require("telescope.actions")
 
+---@diagnostic disable-next-line: deprecated
+local unpack = unpack or table.unpack
+
 local function assert_poll(time, func, ...)
 	local args = { ... }
 

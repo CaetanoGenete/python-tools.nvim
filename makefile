@@ -10,10 +10,10 @@ $(patsubst %, test-%, $(SUPPORTED-VERSIONS)):
 
 test: $(patsubst %, test-%, $(SUPPORTED-VERSIONS))
 
-test-dev: test-3.12
-
 RC_PATH:=.luarc-ci.json
 
 type-check:
 	nvim --headless --noplugin -u $(MINIMAL_INIT) -l ./scripts/gen-type-cheking-rcfile.lua > $(RC_PATH)
 	lua-language-server --check=. --configpath=$(RC_PATH)
+
+test-dev: test-3.12 | type-check
