@@ -42,6 +42,7 @@ jobs:
         name: Install nvim plugins
         continue-on-error: true
         run: |
+          mkdir -p $TEST_PLUGIN_PATH
           cd $TEST_PLUGIN_PATH
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim plenary.nvim
           git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter treesitter
