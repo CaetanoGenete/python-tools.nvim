@@ -1,4 +1,4 @@
-name: Tests
+name: Check typing
 env:
   TEST_PLUGIN_PATH: "../nvim-plugins/"
 
@@ -8,41 +8,37 @@ on:
       - master
 jobs:
   unit_tests:
-    name: unit tests
-    runs-on: ${{ matrix.os }}
+    name: lua-language-server check
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
-      matrix:
-        os: [ubuntu-22.04, windows-2022]
-        rev: [v0.11.0]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install UV
-        uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-
       - uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
-          version: ${{ matrix.rev }}
+          version: v0.11.0
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
 
       - name: Prepare
         run: |
+          brew install lua-language-server
+
           mkdir -p ${{ env.TEST_PLUGIN_PATH }}
 
-      - name: Install plugins
+      - name: Install nvim plugins
         working-directory: ${{ env.TEST_PLUGIN_PATH }}
         run: |
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim plenary.nvim
           git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter treesitter
-          git clone --depth 1 https://github.com/nvim-telescope/telescope.nvim telescope.nvim
 
-      - name: Run tests
+      - name: Check types
         run: |
-          nvim --version
-          uv --version
-
-          make test
+          echo "Checking types in: $(pwd)"
+          lua-language-server --version
+          make type-check
