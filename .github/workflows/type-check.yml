@@ -28,7 +28,6 @@ jobs:
       - uses: actions/cache@v4
         id: cache
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/nvim-plugins
           key: ${{ runner.os }}-nvim-plugins
 
@@ -46,5 +45,6 @@ jobs:
       - name: Check types
         run: |
           echo "Checking types in: $(pwd)"
+          ls -l $TEST_PLUGIN_PATH
           lua-language-server --version
           make type-check
