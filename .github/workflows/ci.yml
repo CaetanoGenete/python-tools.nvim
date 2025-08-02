@@ -15,11 +15,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04, windows-2022]
         rev: [v0.11.0]
-        include:
-          - os: ubuntu-22.04
-            install-uv: pipx install uv
-          - os: windows-2022
-            install-uv: choco install uv
 
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +31,6 @@ jobs:
 
       - name: Prepare tests
         run: |
-          ${{ matrix.install-uv }}
           uv --version
 
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim

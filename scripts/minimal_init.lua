@@ -13,8 +13,6 @@ for _, plugin in ipairs(plugins) do
 	vim.opt.rtp:append(joinpath(plugin_path, plugin))
 end
 
-vim.print(vim.opt.rtp)
-
 vim.cmd("runtime! plugin/plenary.vim")
 require("nvim-treesitter").setup()
 
