@@ -5,6 +5,7 @@ if not plugin_path then
 	-- Default to lazy default install path
 	plugin_path = joinpath(vim.fn.stdpath("data"), "lazy")
 end
+plugin_path = vim.fn.expand(plugin_path)
 vim.print("Resolved plugin path to: " .. plugin_path)
 
 local plugins = { "plenary.nvim", "treesitter" }

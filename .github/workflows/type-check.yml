@@ -52,6 +52,6 @@ jobs:
 
       - name: Check types
         run: |
-          echo "Checking types in: $pwd"
+          echo "Checking types in: $(pwd)"
           lua-language-server --version
           make type-check
