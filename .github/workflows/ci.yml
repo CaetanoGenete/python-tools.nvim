@@ -1,6 +1,6 @@
 name: Tests
 env:
-  TEST_PLUGIN_PATH: "../"
+  TEST_PLUGIN_PATH: "~/nvim-plugins/"
 
 on:
   pull_request:
@@ -33,8 +33,8 @@ jobs:
         run: |
           uv --version
 
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim
-          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ../treesitter
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ${TEST_PLUGIN_PATH}plenary.nvim
+          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ${TEST_PLUGIN_PATH}treesitter
 
       - name: Run tests
         run: |
