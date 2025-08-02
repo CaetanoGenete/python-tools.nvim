@@ -1,6 +1,6 @@
 name: Check typing
 env:
-  TEST_PLUGIN_PATH: "~/nvim-plugins/"
+  TEST_PLUGIN_PATH: "../"
 
 on:
   pull_request:
