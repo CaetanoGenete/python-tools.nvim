@@ -24,6 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable uv caching
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
       - uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
