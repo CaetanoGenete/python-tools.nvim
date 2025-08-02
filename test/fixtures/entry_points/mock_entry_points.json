@@ -1,0 +1,38 @@
+[
+  {
+    "name": "ep1",
+    "group": "console_scripts",
+    "value": ["hello", "entry_point_1"],
+    "rel_filepath": "mock-repo/hello.py",
+    "lineno": 6
+  },
+  {
+    "name": "ep2",
+    "group": "console_scripts",
+    "value": ["hello", "entry_point_2"],
+    "rel_filepath": "mock-repo/hello.py",
+    "lineno": 14
+  },
+  {
+    "name": "ep3",
+    "group": "my.group",
+    "value": ["hello", "ep.entry_point"],
+    "rel_filepath": "mock-repo/hello.py",
+    "lineno": 2
+  },
+
+  {
+    "name": "ep4",
+    "group": "my.group",
+    "value": ["hello"],
+    "rel_filepath": "mock-repo/hello.py",
+    "lineno": 0
+  },
+  {
+    "name": "ep5",
+    "group": "console_scripts",
+    "value": ["hello", "no_such_function"],
+    "rel_filepath": "mock-repo/hello.py",
+    "lineno": null
+  }
+]

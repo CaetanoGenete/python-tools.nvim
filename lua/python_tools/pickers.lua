@@ -59,18 +59,29 @@ local function jump_to_line(winid, bufnr, lnum)
 	end)
 end
 
----@class PreviewerState
----@field bufnr integer
----@field winid integer
----@field bufname string?
-
 ---@class EntryPointEntry
 ---@field value EntryPointDef
 ---@field ordinal string
 ---@field displayer fun(...):...
----@field state "done"|"pending"|nil
+---@field state "done"|"pending"|"debounce"|nil
 ---@field filename string?
 ---@field lnum integer?
+
+local function aset_entry_point_location(entry)
+	entry.state = "pending"
+	local ok, filename, lnum = pcall(ep_tools.aentry_point_location, entry.value)
+	entry.state = "done"
+
+	if ok then
+		entry.filename = filename
+		entry.lnum = lnum
+	end
+end
+
+---@class PreviewerState
+---@field bufnr integer
+---@field winid integer
+---@field bufname string?
 
 ---@param state PreviewerState
 ---@param entry EntryPointEntry
@@ -143,38 +154,34 @@ local function pick_entry_point(eps, opts)
 		define_preview = function(self, entry, _)
 			selected = entry
 
-			if entry.state == "pending" then
+			if entry.state == "done" then
+				render_entry(self.state, entry, opts)
 				return
 			end
 
-			if entry.state == "done" then
-				render_entry(self.state, entry, opts)
-			else
-				async.run(function()
-					-- Debounce helps prevent freezing/blocking if navigating too fast.
-					-- E.g. holding down arrow keys.
-					if opts.debounce_duration_ms > 0 then
-						async.sleep(opts.debounce_duration_ms)
-						if selected ~= entry then
-							return
-						end
-					end
-
-					entry.state = "pending"
-					local ok, filename, lnum = pcall(ep_tools.aentry_point_location, entry.value)
-					entry.state = "done"
-
-					if ok then
-						entry.filename = filename
-						entry.lnum = lnum
-					end
-
-					-- Avoid rendering if the user has selected something else in the meantime
-					if selected == entry then
-						render_entry(self.state, entry, opts)
-					end
-				end)
+			if entry.state == "pending" or entry.state == "debounce" then
+				return
 			end
+
+			entry.state = "debounce"
+			async.run(function()
+				-- Debounce helps prevent freezing/blocking if navigating too fast.
+				-- E.g. holding down arrow keys.
+				if opts.debounce_duration_ms > 0 then
+					async.sleep(opts.debounce_duration_ms)
+					if selected ~= entry then
+						entry.state = nil
+						return
+					end
+				end
+
+				aset_entry_point_location(entry)
+
+				-- Avoid rendering if the user has selected something else in the meantime
+				if selected == entry then
+					render_entry(self.state, entry, opts)
+				end
+			end)
 		end,
 	})
 
@@ -191,23 +198,19 @@ local function pick_entry_point(eps, opts)
 		end,
 	})
 
-	local select_timeout_s = opts.select_timeout_ms / 1000
-
 	local attach_mappings = function()
 		---@diagnostic disable-next-line: undefined-field
 		action_set.select:replace(function(prompt_bufnr, type)
 			---@type EntryPointEntry
 			local entry = action_state.get_selected_entry()
 
-			local start_time = os.clock()
-			-- Block for for `timeout` or until fetching entry-point finishes.
-			while entry.state ~= "done" do
-				vim.notify("Looking for entry-point's origin, please wait...")
-				if (os.clock() - start_time) > select_timeout_s then
-					break
-				end
-				vim.cmd("sleep 10m")
+			if entry.state == nil then
+				async.run(aset_entry_point_location, entry)
 			end
+
+			vim.wait(opts.select_timeout_ms, function()
+				return entry.state == "done"
+			end, 10)
 
 			if entry.filename ~= nil then
 				clear_cmdline()
@@ -241,7 +244,7 @@ end
 
 ---Telescope picker (with preview) for python entry-points.
 ---@param opts EntryPointPickerOptions? picker options.
-M.find_entry_points = function(opts)
+function M.find_entry_points(opts)
 	---@type EntryPointPickerOptions
 	opts = vim.tbl_extend("force", DEFAULT_EP_PICKER_CONFIG, opts or {})
 

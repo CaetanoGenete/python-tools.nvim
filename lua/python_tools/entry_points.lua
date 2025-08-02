@@ -32,7 +32,7 @@ local afind_entry_point_origin = make_ascript("find_entry_point_origin.py")
 ---@async
 ---@param group string? If non-nil, only selects entry-points in this group.
 ---@return EntryPointDef[]
-M.aentry_points = function(group)
+function M.aentry_points(group)
 	local args = {}
 	if group ~= nil then
 		args = { group }
@@ -48,7 +48,7 @@ local ROOT_ATTR_QUERY = [[
 			(function_definition
 				name: (_) @entry_point_name)
 		  (expression_statement
-				(assignment 
+				(assignment
 					left: (_) @entry_point_name))
 		]
 		(#eq? @entry_point_name "%s")
@@ -118,7 +118,7 @@ end
 ---@async
 ---@param def EntryPointDef
 ---@return string? path, integer lineno
-M.aentry_point_location = function(def)
+function M.aentry_point_location(def)
 	-- Try to use tree-sitter implementation first, then fallback to importlib
 	-- upon failure.
 	--

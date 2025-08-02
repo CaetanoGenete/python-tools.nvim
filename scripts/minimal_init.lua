@@ -6,7 +6,11 @@ if not plugin_path then
 	plugin_path = joinpath(vim.fn.stdpath("data"), "lazy")
 end
 
-local plugins = { "plenary.nvim", "treesitter" }
+local plugins = {
+	"plenary.nvim",
+	"telescope.nvim",
+	"treesitter",
+}
 for _, plugin in ipairs(plugins) do
 	vim.opt.rtp:append(joinpath(plugin_path, plugin))
 end
@@ -23,3 +27,6 @@ if vim.fn.has("win32") == 1 then
 else
 	vim.g.python = "./test/mock-repo/.venv/bin/python"
 end
+
+-- Prevent messing up local SHADA during tests
+vim.opt.shadafile = "NONE"

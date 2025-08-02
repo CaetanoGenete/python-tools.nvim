@@ -86,7 +86,7 @@ local timer_start = wrap(vim.uv.timer_start, 3)
 
 ---Pause execution for `duration` milliseconds.
 ---@param duration integer in milliseconds.
-M.sleep = function(duration)
+function M.sleep(duration)
 	local timer = vim.uv.new_timer()
 	timer_start(timer, duration, 0)
 	timer:stop()
@@ -94,8 +94,8 @@ M.sleep = function(duration)
 end
 
 ---Executes an async function.
----@param async_function fun(...): ...
-M.run = function(async_function, ...)
+---@param async_function fun(...): ...:any
+function M.run(async_function, ...)
 	coroutine.resume(coroutine.create(async_function), ...)
 end
 
@@ -107,7 +107,7 @@ end
 ---@param async_function fun(...): R Async function to be scheduleded.
 ---@param callback fun(success: boolean, result: R?) Callback to be executed upon completion.
 ---@param ... any Additional arguments to be passed to `async_function`
-M.run_callback = function(async_function, callback, ...)
+function M.run_callback(async_function, callback, ...)
 	M.run(function(...)
 		local ok, result = pcall(async_function, ...)
 		callback(ok, result)
@@ -118,7 +118,7 @@ end
 ---@async
 ---@param path string
 ---@return string? content, string? errmsg
-M.read_file = function(path)
+function M.read_file(path)
 	local open_err, fd = M.fs_open(path, "r", 438)
 	if open_err or fd == nil then
 		return nil, open_err

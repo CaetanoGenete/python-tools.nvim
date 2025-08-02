@@ -10,6 +10,8 @@ $(patsubst %, test-%, $(SUPPORTED-VERSIONS)):
 
 test: $(patsubst %, test-%, $(SUPPORTED-VERSIONS))
 
+test-dev: test-3.12
+
 RC_PATH:=.luarc-ci.json
 
 type-check:
