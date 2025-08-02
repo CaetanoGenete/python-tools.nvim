@@ -1,0 +1,38 @@
+name: Check typing
+env:
+  TEST_PLUGIN_PATH: "../"
+
+on:
+  pull_request:
+    branches:
+      - master
+jobs:
+  unit_tests:
+    name: lua-language-server check
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: v0.11.0
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Prepare
+        run: |
+          # Install dependencies
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim
+          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ../treesitter
+
+          brew install lua-language-server
+
+      - name: Check types
+        run: |
+          lua-language-server --version
