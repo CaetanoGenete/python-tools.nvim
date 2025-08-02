@@ -1,6 +1,6 @@
 name: Check typing
 env:
-  TEST_PLUGIN_PATH: "../"
+  TEST_PLUGIN_PATH: "../nvim-plugins/"
 
 on:
   pull_request:
@@ -28,7 +28,8 @@ jobs:
       - name: Prepare
         run: |
           brew install lua-language-server
-          mkdir -p $TEST_PLUGIN_PATH
+
+          mkdir -p ${{ env.TEST_PLUGIN_PATH }}
 
       - name: Install nvim plugins
         working-directory: ${{ env.TEST_PLUGIN_PATH }}
