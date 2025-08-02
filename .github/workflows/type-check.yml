@@ -25,22 +25,22 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
 
-      - name: Cache nvim plugins
-        id: nvim-plugin-cache
-        uses: actions/cache@v4
-        env:
-          cache-name: nvim-plugin-cache
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ${{ env.TEST_PLUGIN_PATH }}
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+      # - name: Cache nvim plugins
+      #   id: nvim-plugin-cache
+      #   uses: actions/cache@v4
+      #   env:
+      #     cache-name: nvim-plugin-cache
+      #   with:
+      #     # npm cache files are stored in `~/.npm` on Linux/macOS
+      #     path: ${{ env.TEST_PLUGIN_PATH }}
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-build-
+      #       ${{ runner.os }}-
 
-      - if: ${{ steps.nvim-plugin-cache.outputs.cache-hit != 'true' }}
+      # - if: ${{ steps.nvim-plugin-cache.outputs.cache-hit != 'true' }}
         name: Install nvim plugins
-        continue-on-error: true
+        # continue-on-error: true
         run: |
           mkdir -p $TEST_PLUGIN_PATH
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ${TEST_PLUGIN_PATH}plenary.nvim
