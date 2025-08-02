@@ -30,11 +30,12 @@ jobs:
           version: ${{ matrix.rev }}
 
       - name: Prepare tests
+        working-directory: ${{ env.TEST_PLUGIN_PATH }}
         run: |
           uv --version
 
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ${TEST_PLUGIN_PATH}plenary.nvim
-          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ${TEST_PLUGIN_PATH}treesitter
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim plenary.nvim
+          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter treesitter
 
       - name: Run tests
         run: |
