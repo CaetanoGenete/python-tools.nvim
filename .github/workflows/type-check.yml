@@ -36,3 +36,4 @@ jobs:
       - name: Check types
         run: |
           lua-language-server --version
+          make type-check
