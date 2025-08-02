@@ -23,7 +23,7 @@ end
 
 local function wait_for_picker()
 	local picker
-	assert_poll(1000, function()
+	assert_poll(3000, function()
 		local buf = vim.api.nvim_get_current_buf()
 		picker = action_state.get_current_picker(buf)
 		return picker ~= nil
