@@ -43,8 +43,8 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p $TEST_PLUGIN_PATH
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim $TEST_PLUGIN_PATH/plenary.nvim
-          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter $TEST_PLUGIN_PATH/treesitter
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ${TEST_PLUGIN_PATH}plenary.nvim
+          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ${TEST_PLUGIN_PATH}treesitter
 
       - name: Prepare
         run: |
