@@ -1,6 +1,6 @@
 name: Tests
 env:
-  TEST_PLUGIN_PATH: "../"
+  TEST_PLUGIN_PATH: "../plugin-path/"
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable uv caching
+      - name: Install UV
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
