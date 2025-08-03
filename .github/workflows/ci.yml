@@ -38,6 +38,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim plenary.nvim
           git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter treesitter
+          git clone --depth 1 https://github.com/nvim-telescope/telescope.nvim telescope.nvim
 
       - name: Run tests
         run: |
