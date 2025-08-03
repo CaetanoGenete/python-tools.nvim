@@ -1,4 +1,5 @@
 local async = require("python_tools.utils._async")
+local pyutils = require("python_tools.utils.python")
 
 ---@diagnostic disable-next-line: deprecated
 local unpack = unpack or table.unpack
@@ -6,14 +7,15 @@ local unpack = unpack or table.unpack
 local M = {}
 
 ---@param script string The script to invoke.
----@return fun(...: string): ...: string
+---@return fun(python_path: string, ...: string): ...: string
 local function make_ascript(script)
 	local root = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
 	local path = vim.fs.joinpath(root, "scripts", script)
 
 	---@async
-	return function(...)
-		local result = async.system({ vim.g.python or "python", path, ... }, { text = true, timeout = 5000 })
+	---@param python_path string
+	return function(python_path, ...)
+		local result = async.system({ python_path, path, ... }, { text = true, timeout = 5000 })
 		assert(result.code == 0, "Python subprocess failed! " .. result.stderr)
 		return result.stdout
 	end
@@ -31,14 +33,17 @@ local afind_entry_point_origin = make_ascript("find_entry_point_origin.py")
 ---Returns entry-points available in the environment.
 ---@async
 ---@param group string? If non-nil, only selects entry-points in this group.
+---@param python_path string? Path to python binary. Defaults to binary on PATH.
 ---@return EntryPointDef[]
-function M.aentry_points(group)
+function M.aentry_points(group, python_path)
+	python_path = pyutils.default_path(python_path)
+
 	local args = {}
 	if group ~= nil then
 		args = { group }
 	end
 
-	local result = alist_entry_points(unpack(args))
+	local result = alist_entry_points(python_path, unpack(args))
 	return vim.json.decode(result)
 end
 
@@ -59,10 +64,11 @@ local ROOT_ATTR_QUERY = [[
 ---
 ---For simple *entry-points*, it should be more accurate.
 ---@async
+---@param python_path string
 ---@param module string
 ---@param attr string?
 ---@return string, integer
-local function aentry_point_location_ts(module, attr)
+local function aentry_point_location_ts(python_path, module, attr)
 	if attr == nil or attr:find(".", nil, true) then
 		error("TS implementation can only be used with module attributes, use importlib instead.")
 	end
@@ -70,7 +76,7 @@ local function aentry_point_location_ts(module, attr)
 	-- It's still necessary to use importlib to map the module path to a system
 	-- path (where possible). However, this does less module loading and
 	-- dependency resolution than loading the entry-point.
-	local file_path = afind_entry_point_origin(module)
+	local file_path = afind_entry_point_origin(python_path, module)
 	file_path = vim.fs.normalize(file_path)
 
 	local lnum = 0
@@ -106,19 +112,23 @@ end
 
 ---Returns entry-point location using importlib.
 ---@async
+---@param python_path string
 ---@param name string
 ---@param group string
 ---@return EntryPoint
-local aentry_point_location_importlib = function(name, group)
-	local result = afind_entry_point(name, group)
+local function aentry_point_location_importlib(python_path, name, group)
+	local result = afind_entry_point(python_path, name, group)
 	return vim.json.decode(result)
 end
 
 ---Find entry-point definition in source.
 ---@async
 ---@param def EntryPointDef
+---@param python_path string? Path to python binary. Defaults to binary on PATH.
 ---@return string? path, integer lineno
-function M.aentry_point_location(def)
+function M.aentry_point_location(def, python_path)
+	python_path = pyutils.default_path(python_path)
+
 	-- Try to use tree-sitter implementation first, then fallback to importlib
 	-- upon failure.
 	--
@@ -136,12 +146,12 @@ function M.aentry_point_location(def)
 	-- None of these issues appear when fetching the entry-point using
 	-- tree-sitter, as no dependency resolution occurs. However, it cannot follow
 	-- chains of attributes, such as `a.b.c`.
-	local ok, result, loc = pcall(aentry_point_location_ts, unpack(def.value))
+	local ok, result, loc = pcall(aentry_point_location_ts, python_path, unpack(def.value))
 	if ok then
 		return result, loc
 	end
 
-	local ep = aentry_point_location_importlib(def.name, def.group)
+	local ep = aentry_point_location_importlib(python_path, def.name, def.group)
 	return ep.filename, ep.lineno
 end
 

@@ -25,9 +25,9 @@ if not require("nvim-treesitter.parsers").has_parser("python") then
 end
 
 if vim.fn.has("win32") == 1 then
-	vim.g.python = "./test/mock-repo/.venv/Scripts/python.exe"
+	vim.g.pytools_default_python_path = "./test/mock-repo/.venv/Scripts/python.exe"
 else
-	vim.g.python = "./test/mock-repo/.venv/bin/python"
+	vim.g.pytools_default_python_path = "./test/mock-repo/.venv/bin/python"
 end
 
 -- Prevent messing up local SHADA during tests

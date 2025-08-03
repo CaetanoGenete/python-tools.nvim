@@ -12,21 +12,35 @@ local putils = require("telescope.previewers.utils")
 local ep_tools = require("python_tools.entry_points")
 
 ---@class	EntryPointPickerOptions
----Maximum display width for entry-point group. Defaults `12`.
----@field group_max_width integer?
+---Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
+---
+---See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more details on what an
+---entry-point *group* is.
+---
 ---Defaults to `nil`.
 ---@field group string?
----The duration in milliseconds for which an entry should be selected, before
----the entry-point location is fetched. Defaults to `20`.
+---Path to the python environment binary, wherein to look to for entry-points.
+---
+---The path is resolved to be the first non-nil value from:
+--- - `python_path`
+--- - `vim.g.pytools_default_python_path`
+--- - `"python"`
+---@field python_path string?
+---Maximum display width, in the *results* window, for the entry-point group. Defaults `12`.
+---@field group_max_width integer?
+---The duration in milliseconds for which an entry should be selected, before the entry-point location is fetched.
+---Defaults to `20`.
 ---@field debounce_duration_ms integer?
----How long to wait, in milliseconds, for an entry-point to be found once
----selected. Defaults to `2000`.
+---How long to wait, in milliseconds, for an entry-point to be found once selected, before throwing an error. Defaults
+---to `2000`.
 ---@field select_timeout_ms integer?
 ---Additional telescope options.
 ---@field [string] any
 
 ---@type EntryPointPickerOptions
 local DEFAULT_EP_PICKER_CONFIG = {
+	group = nil,
+	python_path = nil,
 	group_max_width = 12,
 	debounce_duration_ms = 50,
 	select_timeout_ms = 2000,
@@ -67,9 +81,11 @@ end
 ---@field filename string?
 ---@field lnum integer?
 
-local function aset_entry_point_location(entry)
+---@param entry EntryPointEntry
+---@param opts EntryPointPickerOptions
+local function aset_entry_point_location(entry, opts)
 	entry.state = "pending"
-	local ok, filename, lnum = pcall(ep_tools.aentry_point_location, entry.value)
+	local ok, filename, lnum = pcall(ep_tools.aentry_point_location, entry.value, opts.python_path)
 	entry.state = "done"
 
 	if ok then
@@ -115,7 +131,7 @@ end
 ---@param eps EntryPointDef[]
 ---@param opts EntryPointPickerOptions picker options.
 local function pick_entry_point(eps, opts)
-	clear_cmdline()
+	clear_cmdline() -- Clear `Fetching entry-points...`
 
 	local group_width = 0
 	for _, ep in ipairs(eps) do
@@ -175,7 +191,7 @@ local function pick_entry_point(eps, opts)
 					end
 				end
 
-				aset_entry_point_location(entry)
+				aset_entry_point_location(entry, opts)
 
 				-- Avoid rendering if the user has selected something else in the meantime
 				if selected == entry then
@@ -205,7 +221,7 @@ local function pick_entry_point(eps, opts)
 			local entry = action_state.get_selected_entry()
 
 			if entry.state == nil then
-				async.run(aset_entry_point_location, entry)
+				async.run(aset_entry_point_location, entry, opts)
 			end
 
 			vim.wait(opts.select_timeout_ms, function()
@@ -263,7 +279,7 @@ function M.find_entry_points(opts)
 	end
 
 	vim.notify("Fetching entry-points from environment...", vim.log.levels.INFO)
-	async.run_callback(ep_tools.aentry_points, on_endpoints, opts.group)
+	async.run_callback(ep_tools.aentry_points, on_endpoints, opts.group, opts.python_path)
 end
 
 return M
