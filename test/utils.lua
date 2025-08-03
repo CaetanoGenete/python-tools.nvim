@@ -1,6 +1,6 @@
 -- IMPORTANT: this module MUST be at the root of the `/test` directory!
 
---- Full path to the `/test` directory.
+---Full path to the `/test` directory.
 TEST_PATH = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
 
 local M = {}

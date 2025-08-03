@@ -60,7 +60,7 @@ describe("Test entry_points picker:", function()
 
 		for _, value in ipairs(fixt) do
 			it(value.name, function()
-				pickers.find_entry_points({})
+				pickers.find_entry_points()
 
 				local picker = wait_for_picker()
 				search_selection(picker, value.name)
@@ -73,7 +73,7 @@ describe("Test entry_points picker:", function()
 
 	describe("select failure -", function()
 		it("ep5", function()
-			pickers.find_entry_points({})
+			pickers.find_entry_points()
 
 			local picker = wait_for_picker()
 			search_selection(picker, "ep5")
