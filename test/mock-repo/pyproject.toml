@@ -15,3 +15,4 @@ ep5 = "hello:no_such_function"
 [project.entry-points."my.group"]
 ep3 = "hello:ep.entry_point"
 ep4 = "hello"
+ep6 = "other:entry_point"

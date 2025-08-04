@@ -55,6 +55,9 @@ local ROOT_ATTR_QUERY = [[
 		  (expression_statement
 				(assignment
 					left: (_) @entry_point_name))
+			(decorated_definition
+				definition: (function_definition
+					name: (_) @entry_point_name))
 		]
 		(#eq? @entry_point_name "%s")
 	)
