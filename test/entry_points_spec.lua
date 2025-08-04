@@ -40,7 +40,10 @@ describe("Test entry points:", function()
 
 	describe("Module location tests - ", function()
 		local fixt = tutils.get_fixture("entry_points", "mock_entry_points.json")
-		table.remove(fixt)
+		-- Skip expected failing entries
+		fixt = vim.fn.filter(fixt, function(_, value)
+			return value.lineno ~= vim.NIL
+		end)
 
 		for _, case in ipairs(fixt) do
 			it("should find the correct location for `" .. case.name .. "`", function()

@@ -19,7 +19,7 @@ local ep_tools = require("python_tools.entry_points")
 ---
 ---Defaults to `nil`.
 ---@field group string?
----Path to the python environment binary, wherein to look to for entry-points.
+---Path to the python environment binary, wherein to look for entry-points.
 ---
 ---The path is resolved to be the first non-nil value from:
 --- - `python_path`

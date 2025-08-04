@@ -25,6 +25,11 @@ if __name__ == "__main__":
         else:
             eps = chain(*entry_points().values())
 
+    # Python versions less than 3.10 may duplicate imports. See
+    # https://github.com/pypa/setuptools/issues/3649
+    if sys.version_info < (3, 10):
+        eps = set(eps)
+
     result = [
         EntryPoint(
             name=ep.name,
