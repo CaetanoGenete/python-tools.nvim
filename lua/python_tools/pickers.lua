@@ -9,32 +9,37 @@ local action_set = require("telescope.actions.set")
 local action_state = require("telescope.actions.state")
 local putils = require("telescope.previewers.utils")
 
-local ep_tools = require("python_tools.entry_points")
+local ep_tools = require("python_tools.meta.entry_points")
 
 ---@class	EntryPointPickerOptions
----Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
+--- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
 ---
----See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more details on what an
----entry-point *group* is.
+--- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
+--- details on what an entry-point *group* is.
 ---
----Defaults to `nil`.
+--- Defaults to `nil`.
 ---@field group string?
----Path to the python environment binary, wherein to look for entry-points.
+--- Path to the python environment binary, wherein to look for entry-points.
 ---
----The path is resolved to be the first non-nil value from:
---- - `python_path`
---- - `vim.g.pytools_default_python_path`
---- - `"python"`
+--- The path is resolved to be the first non-nil value from:
+---  - `python_path`
+---  - `vim.g.pytools_default_python_path`
+---  - `"python"`
 ---@field python_path string?
----Maximum display width, in the *results* window, for the entry-point group. Defaults `12`.
+--- Maximum display width, in the *results* window, for the entry-point group.
+--- Defaults `12`.
 ---@field group_max_width integer?
----The duration in milliseconds for which an entry should be selected, before the entry-point location is fetched.
----Defaults to `20`.
+--- The duration in milliseconds for which an entry should be selected, before the entry-point
+--- location is fetched.
+---
+--- Defaults to `50`.
 ---@field debounce_duration_ms integer?
----How long to wait, in milliseconds, for an entry-point to be found once selected, before throwing an error. Defaults
----to `2000`.
+--- How long to wait, in milliseconds, for an entry-point to be found once selected, before throwing
+--- an error.
+---
+--- Defaults to `2000`.
 ---@field select_timeout_ms integer?
----Additional telescope options.
+--- Additional telescope options.
 ---@field [string] any
 
 ---@type EntryPointPickerOptions
@@ -47,31 +52,9 @@ local DEFAULT_EP_PICKER_CONFIG = {
 	preview = {},
 }
 
--- For highlighting purposes
 local ns_previewer = vim.api.nvim_create_namespace("telescope.previewers")
 
 local M = {}
-
----Centers the viewport at `lnum` for the given `bufnr`.
----
----Also moves the cursor to `winid`.
----@param winid integer
----@param bufnr integer
----@param lnum integer?
-local function jump_to_line(winid, bufnr, lnum)
-	pcall(vim.api.nvim_buf_clear_namespace, bufnr, ns_previewer, 0, -1)
-	if lnum == nil or lnum == 0 then
-		return
-	end
-
-	---@diagnostic disable-next-line: deprecated
-	pcall(vim.api.nvim_buf_add_highlight, bufnr, ns_previewer, "TelescopePreviewLine", lnum - 1, 0, -1)
-	pcall(vim.api.nvim_win_set_cursor, winid, { lnum, 0 })
-
-	vim.api.nvim_buf_call(bufnr, function()
-		vim.cmd("norm! zz")
-	end)
-end
 
 ---@class EntryPointEntry
 ---@field value EntryPointDef
@@ -92,6 +75,29 @@ local function aset_entry_point_location(entry, opts)
 		entry.filename = filename
 		entry.lnum = lnum
 	end
+end
+
+--- Centers the viewport at `lnum` for the given `bufnr`.
+---
+--- Also moves the cursor to `winid`.
+---@param winid integer
+---@param bufnr integer
+---@param lnum integer?
+local function jump_to_line(winid, bufnr, lnum)
+	pcall(vim.api.nvim_buf_clear_namespace, bufnr, ns_previewer, 0, -1)
+	if lnum == nil or lnum == 0 then
+		return
+	end
+
+	pcall(vim.api.nvim_buf_set_extmark, bufnr, ns_previewer, lnum - 1, 0, {
+		end_row = lnum,
+		hl_group = "TelescopePreviewLine",
+	})
+	pcall(vim.api.nvim_win_set_cursor, winid, { lnum, 0 })
+
+	vim.api.nvim_buf_call(bufnr, function()
+		vim.cmd("norm! zz")
+	end)
 end
 
 ---@class PreviewerState
@@ -131,8 +137,6 @@ end
 ---@param eps EntryPointDef[]
 ---@param opts EntryPointPickerOptions picker options.
 local function pick_entry_point(eps, opts)
-	clear_cmdline() -- Clear `Fetching entry-points...`
-
 	local group_width = 0
 	for _, ep in ipairs(eps) do
 		local len = #ep.group
@@ -258,7 +262,7 @@ local function pick_entry_point(eps, opts)
 		:find()
 end
 
----Telescope picker (with preview) for python entry-points.
+--- Telescope picker (with preview) for python entry-points.
 ---@param opts EntryPointPickerOptions? picker options.
 function M.find_entry_points(opts)
 	---@type EntryPointPickerOptions
@@ -275,6 +279,7 @@ function M.find_entry_points(opts)
 			return
 		end
 
+		clear_cmdline()
 		pick_entry_point(eps, opts)
 	end
 

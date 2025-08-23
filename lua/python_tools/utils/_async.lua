@@ -1,8 +1,6 @@
----@diagnostic disable: undefined-field
-
 ---@diagnostic disable-next-line: deprecated
 local unpack = unpack or table.unpack
--- Bad things seem to happen if the coroutine is resumed in the fast-loop.
+-- Bad things seem to happen if the coroutine is resumed during fast events.
 local safe_resume = vim.schedule_wrap(coroutine.resume)
 
 local M = {}
@@ -11,7 +9,6 @@ local wrap = function(callback_fn, exp_args)
 	---@async
 	local function async_fn(...)
 		local nargs = select("#", ...)
-
 		if exp_args ~= nargs then
 			error("This function only accepts `" .. exp_args .. "` but `" .. nargs .. "` passed!")
 		end
@@ -30,7 +27,6 @@ local wrap = function(callback_fn, exp_args)
 				safe_resume(coro)
 			end
 		end)
-
 		callback_fn(unpack(forward_args))
 
 		if not callback_completed then
@@ -51,14 +47,17 @@ M.system = wrap(vim.system, 2)
 
 ---@async
 ---@type fun(path:string, flags:string|integer, mode:integer):string?,integer?
+---@diagnostic disable-next-line: undefined-field
 M.fs_open = wrap(vim.uv.fs_open, 3)
 
 ---@async
 ---@type fun(fd:integer):string?,integer?
+---@diagnostic disable-next-line: undefined-field
 M.fs_close = wrap(vim.uv.fs_close, 3)
 
 ---@async
 ---@type fun(fd:integer, size:integer, offset:integer?):string?,string?
+---@diagnostic disable-next-line: undefined-field
 M.fs_read = wrap(vim.uv.fs_read, 3)
 
 ---@class UVStat
@@ -77,21 +76,49 @@ M.fs_read = wrap(vim.uv.fs_read, 3)
 ---@field type string
 
 ---@async
----@type fun(fd: integer):string?,UVStat?
+---@type fun(fd: integer): err:string?, stat:UVStat?
+---@diagnostic disable-next-line: undefined-field
 M.fs_stat = wrap(vim.uv.fs_fstat, 1)
 
 ---@async
 ---@type fun(timer, interval: integer, repeat: integer)
+---@diagnostic disable-next-line: undefined-field
 local timer_start = wrap(vim.uv.timer_start, 3)
 
 ---Pause execution for `duration` milliseconds.
 ---@param duration integer in milliseconds.
 function M.sleep(duration)
+	---@diagnostic disable-next-line: undefined-field
 	local timer = vim.uv.new_timer()
 	timer_start(timer, duration, 0)
+
 	timer:stop()
 	timer:close()
 end
+
+---@class LuvDir
+
+---@async
+---@type fun(path: string, entries: integer?): err:string?, dir:LuvDir?
+---@diagnostic disable-next-line: undefined-field
+M.fs_opendir = wrap(function(dir, entries, callback)
+	---@diagnostic disable-next-line: undefined-field
+	return vim.uv.fs_opendir(dir, callback, entries)
+end, 2)
+
+---@class UVReadDirEntry
+---@field name string
+---@field type string
+
+---@async
+---@type fun(dir: LuvDir): err:string?, entries:UVReadDirEntry[]?
+---@diagnostic disable-next-line: undefined-field
+M.fs_readdir = wrap(vim.uv.fs_readdir, 1)
+
+---@async
+---@type fun(dir: LuvDir): err:string?, success:boolean?
+---@diagnostic disable-next-line: undefined-field
+M.fs_closedir = wrap(vim.uv.fs_closedir, 1)
 
 ---Executes an async function.
 ---@param async_function fun(...): ...:any
@@ -99,10 +126,10 @@ function M.run(async_function, ...)
 	coroutine.resume(coroutine.create(async_function), ...)
 end
 
----Schedules an async function for execution.
+--- Schedules an async function for execution.
 ---
----When the function completes it will invoke `callback` on NeoVim's main
----event-loop.
+--- When the function completes it will invoke `callback` on NeoVim's main
+--- event-loop.
 ---@generic R
 ---@param async_function fun(...): R Async function to be scheduleded.
 ---@param callback fun(success: boolean, result: R?) Callback to be executed upon completion.
@@ -114,7 +141,7 @@ function M.run_callback(async_function, callback, ...)
 	end, ...)
 end
 
----Returns the contents of the file at `path`.
+--- Returns the contents of the file at `path`.
 ---@async
 ---@param path string
 ---@return string? content, string? errmsg
@@ -137,6 +164,63 @@ function M.read_file(path)
 	end
 
 	return data, nil
+end
+
+-- Maximum entries returned by each call to `fs_readdir` in `findfile`. For optimal performance,
+-- this should be a prime number.
+local MAX_ENTRIES = 1009
+
+--- Searches current and all parent directories for `file`.
+---@async
+---@param path string the directory wherein to start the search. Will be normalized by
+--- `vim.fs.normalize` first.
+---@param predicate string|fun(entry: UVReadDirEntry):boolean the name of the desired file or a
+--- predicate function determining whether a file has been found.
+---@return string? path, string? errmsg The normalized path of the first match, or `nil`. If an
+--- error occured, `errmsg` will be non-`nil`. NOTE: failure to find file is **not** an error.
+function M.findfile(path, predicate)
+	path = vim.fs.normalize(path)
+
+	if type(predicate) == "string" then
+		local search = predicate
+
+		---@param entry UVReadDirEntry
+		predicate = function(entry)
+			return entry.name == search
+		end
+	end
+
+	local err = nil
+	repeat
+		local open_err, dir = M.fs_opendir(path, MAX_ENTRIES)
+		if not dir then
+			return nil, open_err
+		end
+
+		repeat
+			local read_err, entries = M.fs_readdir(dir)
+			if not entries then
+				err = read_err
+				break
+			end
+
+			for _, entry in ipairs(entries) do
+				if entry.type == "file" and predicate(entry) then
+					return vim.fs.joinpath(path, entry.name)
+				end
+			end
+		until entries == nil or #entries < MAX_ENTRIES
+
+		if err ~= nil then
+			M.fs_closedir(dir)
+			break
+		end
+
+		local last = path
+		path = vim.fs.dirname(path)
+	until last == path
+
+	return nil, err
 end
 
 return M

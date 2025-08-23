@@ -66,7 +66,10 @@ describe("Test entry_points picker:", function()
 				search_selection(picker, value.name)
 
 				actions.select_default(picker.prompt_bufnr)
-				assert_paths_same(vim.api.nvim_buf_get_name(0), vim.fs.joinpath(TEST_PATH, value.rel_filepath))
+				assert_paths_same(
+					vim.api.nvim_buf_get_name(0),
+					vim.fs.joinpath(TEST_PATH, value.rel_filepath)
+				)
 			end)
 		end
 	end)
