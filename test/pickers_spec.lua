@@ -46,8 +46,8 @@ local function search_selection(picker, name)
 	error("Could not find " .. name)
 end
 
-local function assert_paths_same(lhs, rhs)
-	assert.are_same(vim.fs.normalize(lhs), vim.fs.normalize(rhs))
+local function assert_paths_same(expected, actual)
+	assert.are_same(vim.fs.normalize(expected), vim.fs.normalize(actual))
 end
 
 describe("Test entry_points picker:", function()
@@ -58,17 +58,17 @@ describe("Test entry_points picker:", function()
 			return value.lineno ~= vim.NIL
 		end)
 
-		for _, value in ipairs(fixt) do
-			it(value.name, function()
+		for _, expected in ipairs(fixt) do
+			it(expected.name, function()
 				pickers.find_entry_points()
 
 				local picker = wait_for_picker()
-				search_selection(picker, value.name)
+				search_selection(picker, expected.name)
 
 				actions.select_default(picker.prompt_bufnr)
 				assert_paths_same(
-					vim.api.nvim_buf_get_name(0),
-					vim.fs.joinpath(TEST_PATH, value.rel_filepath)
+					vim.fs.joinpath(TEST_PATH, expected.rel_filepath),
+					vim.api.nvim_buf_get_name(0)
 				)
 			end)
 		end

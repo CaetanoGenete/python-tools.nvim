@@ -68,12 +68,12 @@ local M = {}
 ---@param opts EntryPointPickerOptions
 local function aset_entry_point_location(entry, opts)
 	entry.state = "pending"
-	local ok, filename, lnum = pcall(ep_tools.aentry_point_location, entry.value, opts.python_path)
+	local ok, ep = pcall(ep_tools.aentry_point_location, entry.value, opts.python_path)
 	entry.state = "done"
 
-	if ok then
-		entry.filename = filename
-		entry.lnum = lnum
+	if ok and ep ~= nil then
+		entry.filename = ep.filename
+		entry.lnum = ep.lineno
 	end
 end
 

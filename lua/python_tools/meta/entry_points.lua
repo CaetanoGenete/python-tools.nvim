@@ -3,9 +3,6 @@ local pyutils = require("python_tools.utils.python")
 local pyscripts = require("python_tools._scripts.python")
 local tsutils = require("python_tools.utils._treesitter")
 
----@diagnostic disable-next-line: deprecated
-local unpack = unpack or table.unpack
-
 local M = {}
 
 ---@class EntryPointDef
@@ -94,22 +91,8 @@ end
 function M.aentry_points(group, python_path)
 	python_path = python_path or pyutils.default_path()
 
-	local args = {}
-	if group ~= nil then
-		args = { group }
-	end
-
-	local result = pyscripts.alist_entry_points(python_path, unpack(args))
-	return vim.json.decode(result)
-end
-
----@async
----@param python_path string
----@param module string
----@return string
-local function aentry_point_origin(python_path, module)
-	local file_path = pyscripts.afind_entry_point_origin(python_path, module)
-	return vim.fs.normalize(file_path)
+	local result = pyscripts.alist_entry_points_importlib(python_path, { group })
+	return assert(result, "Could not find entry_points")
 end
 
 local ROOT_ATTR_QUERY_STRING = [[
@@ -132,39 +115,35 @@ local ROOT_ATTR_QUERY_STRING = [[
 ---
 --- For simple *entry-points*, it should be more accurate.
 ---@async
----@param python_path string
----@param module string
----@param attr string?
----@return string, integer
-local function aentry_point_location_ts(python_path, module, attr)
-	if attr == nil or attr:find(".", nil, true) then
-		error("TS implementation can only be used with module attributes, use importlib instead.")
+---@param module_path string
+---@param attr string
+---@return integer? lineno, string? errmsg
+local function aentry_point_location_ts(module_path, attr)
+	if attr:find(".", nil, true) then
+		return nil, "TS implementation can only be used with module attributes, use importlib instead."
 	end
 
-	local file_path = aentry_point_origin(python_path, module)
-	local lnum = 0
-
-	-- If `attr` is None, then presumably entry-point invokes module.
-	if attr then
-		local file_content = assert(async.read_file(file_path))
-
-		local ts_query = string.format(ROOT_ATTR_QUERY_STRING, attr)
-		local parsed_ts_query = vim.treesitter.query.parse("python", ts_query)
-
-		local parser = vim.treesitter.get_string_parser(file_content, "python")
-		local root = parser:parse()[1]:root()
-
-		local last_match = -1
-		for _, node in parsed_ts_query:iter_captures(root, file_content) do
-			local row = node:range()
-			last_match = math.max(last_match, row + 1)
-		end
-
-		assert(last_match ~= -1, "Could not find a match!")
-		lnum = last_match
+	local file_content, read_err = async.read_file(module_path)
+	if not file_content then
+		return nil, read_err
 	end
 
-	return file_path, lnum
+	local ts_query = string.format(ROOT_ATTR_QUERY_STRING, attr)
+	local parsed_ts_query = vim.treesitter.query.parse("python", ts_query)
+
+	local parser = vim.treesitter.get_string_parser(file_content, "python")
+	local root = parser:parse()[1]:root()
+
+	local last_match = -1
+	for _, node in parsed_ts_query:iter_captures(root, file_content) do
+		local row = node:range()
+		last_match = math.max(last_match, row + 1)
+	end
+
+	if last_match == -1 then
+		return nil, "Could not find attr!"
+	end
+	return last_match, nil
 end
 
 ---@class EntryPoint
@@ -172,17 +151,6 @@ end
 ---@field group string
 ---@field filename string
 ---@field lineno integer
-
---- Returns entry-point location using importlib.
----@async
----@param python_path string
----@param name string
----@param group string
----@return EntryPoint
-local function aentry_point_location_importlib(python_path, name, group)
-	local result = pyscripts.afind_entry_point(python_path, name, group)
-	return vim.json.decode(result)
-end
 
 --- Find entry-point definition in source.
 ---
@@ -206,16 +174,34 @@ end
 ---@async
 ---@param def EntryPointDef
 ---@param python_path string? Path to python binary. Defaults to binary on PATH.
----@return string? path, integer lineno
+---@return EntryPoint? ep, string? errmsg
 function M.aentry_point_location(def, python_path)
 	python_path = python_path or pyutils.default_path()
-	local ok, result, loc = pcall(aentry_point_location_ts, python_path, unpack(def.value))
-	if ok then
-		return result, loc
+
+	local file_path = pyscripts.afind_entry_point_origin_importlib(python_path, { def.value[1] })
+	if file_path then
+		---@type EntryPoint
+		local result = {
+			name = def.name,
+			group = def.group,
+			filename = file_path,
+			lineno = 0,
+		}
+
+		-- Entry-point has no attr, point to top of module.
+		if #def.value < 2 then
+			return result, nil
+		end
+
+		local loc_ok, lineno = pcall(aentry_point_location_ts, file_path, def.value[2])
+		if loc_ok and lineno ~= nil then
+			result.lineno = lineno
+			return result, nil
+		end
 	end
 
-	local ep = aentry_point_location_importlib(python_path, def.name, def.group)
-	return ep.filename, ep.lineno
+	local ep = pyscripts.afind_entry_point_importlib(python_path, { def.name, def.group })
+	return ep, "could not find entry-point"
 end
 
 return M

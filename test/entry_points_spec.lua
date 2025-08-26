@@ -43,7 +43,7 @@ describe("aentry_points tests:", function()
 	end)
 end)
 
-describe("aentry_points_from_config tests:", function()
+describe("aentry_points_from_project tests:", function()
 	it("should correctly list all available entry_points from mock-setup-py-repo", function()
 		local fixt = tutils.get_fixture("entry_points", "mock_setup_py_entry_points.json")
 		local eps =
@@ -68,10 +68,14 @@ describe("aentry_point_location tests:", function()
 
 	for _, case in ipairs(fixt) do
 		it("should find the correct location for `" .. case.name .. "`", function()
-			local actual_path, lineno = assert(ep.aentry_point_location(case))
+			local actual, errmsg = ep.aentry_point_location(case)
+			assert(actual, errmsg)
 			local expected_path = vim.fs.joinpath(TEST_PATH, case.rel_filepath)
 
-			assert.same({ expected_path, case.lineno }, { vim.fs.normalize(actual_path), lineno })
+			assert.same(
+				{ expected_path, case.lineno },
+				{ vim.fs.normalize(actual.filename), actual.lineno }
+			)
 		end)
 	end
 
@@ -81,7 +85,9 @@ describe("aentry_point_location tests:", function()
 			group = "console_scripts",
 			value = { "hello", "no_such_function" },
 		}
-		local ok = pcall(ep.aentry_point_location, def)
-		assert.are_false(ok)
+
+		local result, err = ep.aentry_point_location(def)
+		assert.is_nil(result)
+		assert.no.is_nil(err)
 	end)
 end)
