@@ -11,21 +11,7 @@ local putils = require("telescope.previewers.utils")
 
 local ep_tools = require("python_tools.meta.entry_points")
 
----@class	EntryPointPickerOptions
---- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
----
---- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
---- details on what an entry-point *group* is.
----
---- Defaults to `nil`.
----@field group string?
---- Path to the python environment binary, wherein to look for entry-points.
----
---- The path is resolved to be the first non-nil value from:
----  - `python_path`
----  - `vim.g.pytools_default_python_path`
----  - `"python"`
----@field python_path string?
+---@class	EntryPointPickerOptions : EntryPointsOptions
 --- Maximum display width, in the *results* window, for the entry-point group.
 --- Defaults `12`.
 ---@field group_max_width integer?
@@ -68,7 +54,7 @@ local M = {}
 ---@param opts EntryPointPickerOptions
 local function aset_entry_point_location(entry, opts)
 	entry.state = "pending"
-	local ok, ep = pcall(ep_tools.aentry_point_location, entry.value, opts.python_path)
+	local ok, ep = pcall(ep_tools.aentry_point_location, entry.value, opts)
 	entry.state = "done"
 
 	if ok and ep ~= nil then
@@ -268,9 +254,14 @@ function M.find_entry_points(opts)
 	---@type EntryPointPickerOptions
 	opts = vim.tbl_extend("force", DEFAULT_EP_PICKER_CONFIG, opts or {})
 
-	local on_endpoints = function(ok, eps)
+	local on_endpoints = function(ok, eps, errmsg)
 		if not ok then
-			vim.notify("An error occured while getting entry-points!", vim.log.levels.ERROR)
+			vim.notify("An unknown error occured while getting entry-points!", vim.log.levels.ERROR)
+			return
+		end
+
+		if eps == nil then
+			vim.notify("Error! " .. errmsg, vim.log.levels.ERROR)
 			return
 		end
 
@@ -284,7 +275,7 @@ function M.find_entry_points(opts)
 	end
 
 	vim.notify("Fetching entry-points from environment...", vim.log.levels.INFO)
-	async.run_callback(ep_tools.aentry_points, on_endpoints, opts.group, opts.python_path)
+	async.run_callback(ep_tools.aentry_points, on_endpoints, opts)
 end
 
 return M

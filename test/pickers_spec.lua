@@ -50,40 +50,38 @@ local function assert_paths_same(expected, actual)
 	assert.are_same(vim.fs.normalize(expected), vim.fs.normalize(actual))
 end
 
-describe("Test entry_points picker:", function()
-	describe("select successful -", function()
-		local fixt = tutils.get_fixture("entry_points", "mock_entry_points.json")
-		-- Skip expected failing entries
-		fixt = vim.fn.filter(fixt, function(_, value)
-			return value.lineno ~= vim.NIL
-		end)
-
-		for _, expected in ipairs(fixt) do
-			it(expected.name, function()
-				pickers.find_entry_points()
-
-				local picker = wait_for_picker()
-				search_selection(picker, expected.name)
-
-				actions.select_default(picker.prompt_bufnr)
-				assert_paths_same(
-					vim.fs.joinpath(TEST_PATH, expected.rel_filepath),
-					vim.api.nvim_buf_get_name(0)
-				)
-			end)
-		end
+describe("Test entry_points picker: select successful -", function()
+	local fixt = tutils.get_fixture("entry_points", "mock_entry_points.json")
+	-- Skip expected failing entries
+	fixt = vim.fn.filter(fixt, function(_, value)
+		return value.lineno ~= vim.NIL
 	end)
 
-	describe("select failure -", function()
-		it("ep5", function()
+	for _, expected in ipairs(fixt) do
+		it(expected.name, function()
 			pickers.find_entry_points()
 
 			local picker = wait_for_picker()
-			search_selection(picker, "ep5")
+			search_selection(picker, expected.name)
 
-			local last_buff_name = vim.api.nvim_buf_get_name(0)
 			actions.select_default(picker.prompt_bufnr)
-			assert_paths_same(last_buff_name, vim.api.nvim_buf_get_name(0))
+			assert_paths_same(
+				vim.fs.joinpath(TEST_PATH, "fixtures", expected.rel_filepath),
+				vim.api.nvim_buf_get_name(0)
+			)
 		end)
+	end
+end)
+
+describe("Test entry_points picker: select failure -", function()
+	it("ep5", function()
+		pickers.find_entry_points()
+
+		local picker = wait_for_picker()
+		search_selection(picker, "ep5")
+
+		local last_buff_name = vim.api.nvim_buf_get_name(0)
+		actions.select_default(picker.prompt_bufnr)
+		assert_paths_same(last_buff_name, vim.api.nvim_buf_get_name(0))
 	end)
 end)

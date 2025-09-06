@@ -78,19 +78,25 @@ M.fs_read = wrap(vim.uv.fs_read, 3)
 ---@async
 ---@type fun(fd: integer): err:string?, stat:UVStat?
 ---@diagnostic disable-next-line: undefined-field
-M.fs_stat = wrap(vim.uv.fs_fstat, 1)
+M.fs_fstat = wrap(vim.uv.fs_fstat, 1)
+
+---@async
+---@type fun(path: string): err:string?, stat:UVStat?
+---@diagnostic disable-next-line: undefined-field
+M.fs_stat = wrap(vim.uv.fs_stat, 1)
 
 ---@async
 ---@type fun(timer, interval: integer, repeat: integer)
 ---@diagnostic disable-next-line: undefined-field
-local timer_start = wrap(vim.uv.timer_start, 3)
+M.timer_start = wrap(vim.uv.timer_start, 3)
 
 ---Pause execution for `duration` milliseconds.
+---@async
 ---@param duration integer in milliseconds.
 function M.sleep(duration)
 	---@diagnostic disable-next-line: undefined-field
 	local timer = vim.uv.new_timer()
-	timer_start(timer, duration, 0)
+	M.timer_start(timer, duration, 0)
 
 	timer:stop()
 	timer:close()
@@ -151,7 +157,7 @@ function M.read_file(path)
 		return nil, open_err
 	end
 
-	local stat_err, stat = M.fs_stat(fd)
+	local stat_err, stat = M.fs_fstat(fd)
 	if stat_err or stat == nil then
 		M.fs_close(fd)
 		return nil, stat_err
@@ -166,54 +172,28 @@ function M.read_file(path)
 	return data, nil
 end
 
--- Maximum entries returned by each call to `fs_readdir` in `findfile`. For optimal performance,
--- this should be a prime number.
-local MAX_ENTRIES = 1009
-
 --- Searches current and all parent directories for `file`.
 ---@async
 ---@param path string the directory wherein to start the search. Will be normalized by
 --- `vim.fs.normalize` first.
----@param predicate string|fun(entry: UVReadDirEntry):boolean the name of the desired file or a
---- predicate function determining whether a file has been found.
+---@param search string|string[] The basename to search for.
 ---@return string? path, string? errmsg The normalized path of the first match, or `nil`. If an
 --- error occured, `errmsg` will be non-`nil`. NOTE: failure to find file is **not** an error.
-function M.findfile(path, predicate)
+function M.findfile(path, search)
 	path = vim.fs.normalize(path)
 
-	if type(predicate) == "string" then
-		local search = predicate
-
-		---@param entry UVReadDirEntry
-		predicate = function(entry)
-			return entry.name == search
-		end
+	if type(search) == "string" then
+		search = { search }
 	end
 
 	local err = nil
 	repeat
-		local open_err, dir = M.fs_opendir(path, MAX_ENTRIES)
-		if not dir then
-			return nil, open_err
-		end
-
-		repeat
-			local read_err, entries = M.fs_readdir(dir)
-			if not entries then
-				err = read_err
-				break
+		for _, name in ipairs(search) do
+			local candidate = vim.fs.joinpath(path, name)
+			local stat_err = M.fs_stat(candidate)
+			if not stat_err then
+				return candidate, nil
 			end
-
-			for _, entry in ipairs(entries) do
-				if entry.type == "file" and predicate(entry) then
-					return vim.fs.joinpath(path, entry.name)
-				end
-			end
-		until entries == nil or #entries < MAX_ENTRIES
-
-		if err ~= nil then
-			M.fs_closedir(dir)
-			break
 		end
 
 		local last = path

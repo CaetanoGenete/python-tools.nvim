@@ -5,7 +5,7 @@ MINIMAL_INIT:=./scripts/minimal_init.lua
 
 # Targets: test-{version}
 $(patsubst %, test-%, $(SUPPORTED-VERSIONS)):
-	uv sync -p $(subst test-,,$@) --project ./test/mock-repo/
+	uv sync -p $(subst test-,,$@) --project ./test/fixtures/mock-repo/
 	nvim --headless --noplugin -u $(MINIMAL_INIT)  -c "PlenaryBustedDirectory test { minimal_init = '$(MINIMAL_INIT)' }"
 
 test: $(patsubst %, test-%, $(SUPPORTED-VERSIONS))

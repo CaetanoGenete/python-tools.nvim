@@ -3,19 +3,22 @@ require("plenary.busted")
 
 local async = require("python_tools.utils._async")
 
+local MOCK_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-repo")
+local MOCK_SETUP_PY_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-setup-py-repo")
+
 describe("Test findfile:", function()
 	local test_cases = {
 		{
-			start = vim.fs.joinpath(TEST_PATH, "mock-repo"),
-			expected = vim.fs.joinpath(TEST_PATH, "mock-repo", "pyproject.toml"),
+			start = MOCK_REPO_PATH,
+			expected = vim.fs.joinpath(MOCK_REPO_PATH, "pyproject.toml"),
 		},
 		{
-			start = vim.fs.joinpath(TEST_PATH, "mock-repo", "src"),
-			expected = vim.fs.joinpath(TEST_PATH, "mock-repo", "pyproject.toml"),
+			start = vim.fs.joinpath(MOCK_REPO_PATH, "src"),
+			expected = vim.fs.joinpath(MOCK_REPO_PATH, "pyproject.toml"),
 		},
 		{
-			start = vim.fs.joinpath(TEST_PATH, "mock-setup-py-repo"),
-			expected = vim.fs.joinpath(TEST_PATH, "mock-setup-py-repo", "setup.py"),
+			start = MOCK_SETUP_PY_REPO_PATH,
+			expected = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py"),
 		},
 	}
 
