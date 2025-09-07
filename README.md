@@ -24,6 +24,8 @@ require("python_tools.pickers").find_entry_points({
 	-- ALL entry-points. See https://packaging.python.org/en/latest/specifications/entry-points/#data-model
 	-- for more details on what an entry-point group is.
 	group = nil,
+	-- If `true`, searches the current active python environment, otherwise, parses the project file.
+	use_importlib = true,
 	-- Path to the python environment binary, wherein to look for entry-points.
 	--
 	-- The path is resolved to be the first non-nil value from:
