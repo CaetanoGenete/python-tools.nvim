@@ -262,7 +262,7 @@ function M.find_entry_points(opts)
 		end
 
 		if eps == nil then
-			vim.notify("Error! " .. errmsg, vim.log.levels.ERROR)
+			vim.notify(("Error! %s"):format(errmsg), vim.log.levels.ERROR)
 			return
 		end
 

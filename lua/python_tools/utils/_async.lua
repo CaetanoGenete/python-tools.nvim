@@ -143,8 +143,7 @@ end
 ---@param ... any Additional arguments to be passed to `async_function`
 function M.run_callback(async_function, callback, ...)
 	M.run(function(...)
-		local ok, result = pcall(async_function, ...)
-		callback(ok, result)
+		callback(pcall(async_function, ...))
 	end, ...)
 end
 
@@ -189,21 +188,21 @@ function M.findfile(path, search)
 		search = { search }
 	end
 
-	local err = nil
+	local curr = path
 	repeat
 		for _, name in ipairs(search) do
-			local candidate = vim.fs.joinpath(path, name)
+			local candidate = vim.fs.joinpath(curr, name)
 			local stat_err = M.fs_stat(candidate)
 			if not stat_err then
 				return candidate, nil
 			end
 		end
 
-		local last = path
-		path = vim.fs.dirname(path)
-	until last == path
+		local last = curr
+		curr = vim.fs.dirname(curr)
+	until last == curr
 
-	return nil, err
+	return nil, "Could not find any of {" .. vim.fn.join(search, ", ") .. "} from " .. path
 end
 
 return M
