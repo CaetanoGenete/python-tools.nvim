@@ -3,14 +3,14 @@
     "name": "ep1",
     "group": "console_scripts",
     "value": ["hello", "ep1"],
-    "rel_filepath": "test/mock-setup-py-repo/hello.py",
+    "rel_filepath": "mock-setup-py-repo/hello.py",
     "lineno": 1
   },
   {
     "name": "ep2",
     "group": "other",
     "value": ["hello", "ep2"],
-    "rel_filepath": "test/mock-setup-py-repo/hello.py",
+    "rel_filepath": "mock-setup-py-repo/hello.py",
     "lineno": 5
   }
 ]

@@ -1,9 +1,10 @@
+---@class _async
+local M = {}
+
 ---@diagnostic disable-next-line: deprecated
 local unpack = unpack or table.unpack
 -- Bad things seem to happen if the coroutine is resumed during fast events.
 local safe_resume = vim.schedule_wrap(coroutine.resume)
-
-local M = {}
 
 local wrap = function(callback_fn, exp_args)
 	---@async
@@ -176,9 +177,11 @@ end
 ---@async
 ---@param path string the directory wherein to start the search. Will be normalized by
 --- `vim.fs.normalize` first.
----@param search string|string[] The basename to search for.
----@return string? path, string? errmsg The normalized path of the first match, or `nil`. If an
---- error occured, `errmsg` will be non-`nil`. NOTE: failure to find file is **not** an error.
+---@param search string|string[] The basename to search for. If a list is provided, the first match
+--- will be returned.
+---@return string? path, string? errmsg There are two cases:
+--- - failure -> `errmsg` will be non-`nil`. NOTE: failure to find file is **not** an error.
+--- - success -> normalized path of the first match, or `nil`
 function M.findfile(path, search)
 	path = vim.fs.normalize(path)
 

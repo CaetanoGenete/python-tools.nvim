@@ -86,7 +86,7 @@ for _, opts in ipairs(AENTRY_POINTS_CASES) do
 
 	describe("aentry_points tests:", function()
 		it(test_name, function()
-			local actual = ep.aentry_points(opts)
+			local actual = assert(ep.aentry_points(opts))
 			sort_entry_points(actual)
 
 			local expected = opts.fixture
@@ -111,6 +111,13 @@ describe("aentry_points_from_project tests:", function()
 		sort_entry_points(actual)
 
 		assert.same(expected, actual)
+	end)
+
+	it("should not fail if file is not the right format", function()
+		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir", "placeholder.txt")
+		local actual = ep.aentry_points_from_project(search_dir)
+
+		assert.same(actual, {})
 	end)
 end)
 

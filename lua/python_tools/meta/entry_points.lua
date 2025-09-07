@@ -3,6 +3,7 @@ local pyutils = require("python_tools.utils.python")
 local pyscripts = require("python_tools._scripts.python")
 local tsutils = require("python_tools.utils._treesitter")
 
+---@class entry_points
 local M = {}
 
 ---@class EntryPointDef
@@ -58,13 +59,16 @@ local SETUP_PY_EP_QUERY = vim.treesitter.query.parse(
 ---    entry_points=my_entry_points,
 --- )
 --- ```
---- For guaranteed results, checkout `python_tools.meta.entry_points.entry_points`.
+--- will return that no entry-points were found.
+---
+--- For guaranteed results, see [aentry_points](lua://entry_points.aentry_points).
 ---
 ---@param project_file string Path to *setup.py* or *pyproject.toml*.
 ---@param group string? Optional filter.
----@return EntryPointDef[]? entrypoints, string? errmsg If a failure occurs at any stage,
---- `entrypoints` will be `nil` and `errmsg` will detail the reason for failure. Otherwise
---- `entrypoints` will be populated with the discovered entry points.
+---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
+---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
+---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
+---	  if none could be found.
 function M.aentry_points_from_project(project_file, group)
 	local file_content, errmsg = async.read_file(project_file)
 	if not file_content then
@@ -175,7 +179,10 @@ end
 ---
 ---@async
 ---@param options EntryPointsOptions?
----@return EntryPointDef[]
+---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
+---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
+---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
+---	  if none could be found.
 function M.aentry_points(options)
 	options = options or {}
 
@@ -183,21 +190,18 @@ function M.aentry_points(options)
 		local python_path = options.python_path or pyutils.default_path()
 
 		local result = pyscripts.alist_entry_points_importlib(python_path, { options.group })
-		return assert(result, "Could not find entry_points")
+		return result, "Could not find entry_points"
 	end
 
 	local search_dir = options.search_dir or vim.fn.getcwd()
 
 	local project_file, find_err = afind_project_file(search_dir)
 	if not project_file then
-		error(find_err or "Could not find `setup.py` or `pyproject.toml`")
+		return nil, find_err
 	end
 
 	local entry_points, ep_err = M.aentry_points_from_project(project_file, options.group)
-	if entry_points == nil then
-		error(ep_err)
-	end
-	return entry_points
+	return entry_points, ep_err
 end
 
 local ROOT_ATTR_QUERY_STRING = [[
@@ -308,7 +312,7 @@ local MODULE_SEARCH_DIRS = { "src", "" }
 --- chains of attributes, such as `a.b.c`.
 ---@async
 ---@param def EntryPointDef The entry-point whose location to discover. Can be obtained, for
----example, by using `M.aentry_points`.
+--- example, by using `M.aentry_points`.
 ---@param options EntryPointLocationOptions?
 ---@return EntryPoint? ep, string? errmsg
 function M.aentry_point_location(def, options)

@@ -13,6 +13,7 @@ local ep_tools = require("python_tools.meta.entry_points")
 
 ---@class	EntryPointPickerOptions : EntryPointsOptions
 --- Maximum display width, in the *results* window, for the entry-point group.
+---
 --- Defaults `12`.
 ---@field group_max_width integer?
 --- The duration in milliseconds for which an entry should be selected, before the entry-point
