@@ -335,7 +335,7 @@ function M.aentry_point_location(def, options)
 		local project_file = afind_project_file(options.search_dir or vim.fn.getcwd())
 		if project_file then
 			local project_dir = vim.fs.dirname(project_file)
-			local module_path = vim.fs.normalize(module:gsub("\\.", "/") .. ".py")
+			local module_path = vim.fs.normalize(vim.fn.substitute(module, "\\.", "/", "g") .. ".py")
 
 			for _, candidate in ipairs(MODULE_SEARCH_DIRS) do
 				local candidate_path = vim.fs.joinpath(project_dir, candidate, module_path)
