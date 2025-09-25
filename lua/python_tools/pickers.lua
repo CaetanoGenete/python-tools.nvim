@@ -11,7 +11,8 @@ local putils = require("telescope.previewers.utils")
 
 local ep_tools = require("python_tools.meta.entry_points")
 
----@class	EntryPointPickerOptions : EntryPointsOptions
+---@class	EntryPointPickerOptions : EntryPointsImportlibOptions, EntryPointsTSOptions
+---@field use_importlib boolean?
 --- Maximum display width, in the *results* window, for the entry-point group.
 ---
 --- Defaults `12`.
@@ -31,8 +32,10 @@ local ep_tools = require("python_tools.meta.entry_points")
 
 ---@type EntryPointPickerOptions
 local DEFAULT_EP_PICKER_CONFIG = {
+	use_importlib = true,
 	group = nil,
 	python_path = nil,
+	search_dir = nil,
 	group_max_width = 12,
 	debounce_duration_ms = 50,
 	select_timeout_ms = 2000,
@@ -55,7 +58,14 @@ local M = {}
 ---@param opts EntryPointPickerOptions
 local function aset_entry_point_location(entry, opts)
 	entry.state = "pending"
-	local ok, ep = pcall(ep_tools.aentry_point_location, entry.value, opts)
+
+	local ok, ep
+	if opts.use_importlib then
+		ok, ep = pcall(ep_tools.aentry_point_location_importlib, entry.value, opts.python_path)
+	else
+		ok, ep = pcall(ep_tools.aentry_point_location_ts, entry.value, opts.search_dir)
+	end
+
 	entry.state = "done"
 
 	if ok and ep ~= nil then
@@ -276,7 +286,11 @@ function M.find_entry_points(opts)
 	end
 
 	vim.notify("Fetching entry-points from environment...", vim.log.levels.INFO)
-	async.run_callback(ep_tools.aentry_points, on_endpoints, opts)
+	if opts.use_importlib then
+		async.run_callback(ep_tools.aentry_points_importlib, on_endpoints, opts)
+	else
+		async.run_callback(ep_tools.aentry_points_ts, on_endpoints, opts)
+	end
 end
 
 return M
