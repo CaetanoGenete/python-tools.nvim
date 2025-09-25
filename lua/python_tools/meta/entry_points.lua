@@ -48,9 +48,35 @@ function M.aentry_points_importlib(options)
 	return result, "Could not find entry_points"
 end
 
+--- An entry-point, as extracted from a project file (`pyproject.toml` or `setup.py`).
+---
+--- ## pyproject.toml
+--- ```toml
+--- [project.entry-points."<group>"]:
+--- <name> = "<value[1]>:...:<value[n]>"
+--- ```
+--- ## setup.py
+--- ```python
+--- setup(
+--- 	entry_points={
+--- 		"<group>": {
+--- 			"<name> = <value[1]>:...:<value[n]>"
+--- 		}
+--- 	}
+--- )
+--- ```
+---
 ---@class EntryPointDef
+--- The name of the entry-point.
 ---@field name string
+--- The group the entry-point belongs to.
 ---@field group string
+--- Typically, contains as elements:
+--- 1. python module path
+--- 2. module attribute (a dot separated getter to a callable python object)
+---
+--- However, python allows these values to be anything. **All** utilities from this library will,
+--- however, assume the above interpretation.
 ---@field value string[]
 
 local SETUP_PY_EP_QUERY = vim.treesitter.query.parse(
@@ -234,9 +260,13 @@ local ROOT_ATTR_QUERY_STRING = [[
 ]]
 
 ---@class EntryPoint
+--- The name of the entry-point.
 ---@field name string
+--- The group the entry-point belongs to.
 ---@field group string
+--- Full path to entry-point in source.
 ---@field filename string
+--- The line number of the entry-point in source (`0` if it does not apply).
 ---@field lineno integer
 
 --- Uses treesitter to find entry-point location in source code.
@@ -292,6 +322,33 @@ end
 
 local MODULE_SEARCH_DIRS = { "src", "" }
 
+--- Find entry-point definition in source.
+---
+--- Uses **only** treesitter to find an entry-point's location from its
+--- [definition](lua://EntryPointDef).
+---
+--- Unlike [aentry_point_location_importlib](lua://entry_points.aentry_point_location_importlib),
+--- this function is not guaranteed to return a location. Since python entry-point resolution occurs
+--- at runtime (as do most things python), it is impossible to correctly determine solely through
+--- static code analysis in all cases.
+---
+--- Take for example:
+--- ```python
+--- def func(): ...
+---
+--- setattr(sys.modules[__name__], "entry_point", func)
+---
+--- ```
+--- In this simple example, a special case could potentially be made to determine that `func` should
+--- be the location of `entry_point`, or perhaps even `setattr`. However, the attribute name
+--- `entry_point` can be hidden behind a virtually infinite level of indirection. Which, to
+--- determine, would invitably reproduce the functionality of `importlib`.
+---
+--- Instead, this function makes a best effort, assuming the entry-point path points to an
+--- explicitely defined module attribute (a top level function, class, variable, or other
+--- identifier).
+---
+---@async
 ---@param def EntryPointDef The entry-point whose location to discover. Can be obtained, for
 --- example, by using `M.aentry_points`. Defaults to the _current working directory_.
 ---@param search_dir string? When looking for entry-points, this and every parent directory
@@ -325,8 +382,9 @@ end
 
 --- Find entry-point definition in source.
 ---
---- Tries to use tree-sitter implementation first, then falls back to importlib
---- upon failure.
+--- Tries to use tree-sitter implementation first, see
+--- [aentry_point_location_ts](lua://entry_points.aentry_point_location_ts), then falls back to
+--- importlib upon failure.
 ---
 --- There are a few reasons for this:
 ---
@@ -342,6 +400,7 @@ end
 --- None of these issues appear when fetching the entry-point using
 --- tree-sitter, as no dependency resolution occurs. However, it cannot follow
 --- chains of attributes, such as `a.b.c`.
+---
 ---@async
 ---@param def EntryPointDef The entry-point whose location to discover. Can be obtained, for
 --- example, by using `M.aentry_points`.

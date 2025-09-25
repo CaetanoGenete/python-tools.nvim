@@ -66,12 +66,12 @@ local function aset_entry_point_location(entry, opts)
 		ok, ep = pcall(ep_tools.aentry_point_location_ts, entry.value, opts.search_dir)
 	end
 
-	entry.state = "done"
-
 	if ok and ep ~= nil then
 		entry.filename = ep.filename
 		entry.lnum = ep.lineno
 	end
+
+	entry.state = "done"
 end
 
 --- Centers the viewport at `lnum` for the given `bufnr`.
