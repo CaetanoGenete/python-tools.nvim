@@ -27,73 +27,70 @@ local MOCK_SETUP_PY_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-set
 local AENTRY_POINTS_CASES = {
 	{
 		use_importlib = true,
-		group = nil,
-		python_path = nil,
-		search_dir = nil,
+		opts = {},
 		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
 	},
 	{
 		use_importlib = true,
-		group = "my.group",
-		python_path = nil,
-		search_dir = nil,
+		opts = { group = "my.group" },
 		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
 	},
 	{
 		use_importlib = true,
-		group = "non-existent-group",
-		python_path = nil,
-		search_dir = nil,
+		opts = { group = "non-existent-group" },
 		fixture = {},
 	},
 	{
 		use_importlib = false,
-		group = nil,
-		python_path = nil,
-		search_dir = MOCK_SETUP_PY_REPO_PATH,
+		opts = { search_dir = MOCK_SETUP_PY_REPO_PATH },
 		fixture = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json"),
 	},
 	{
 		use_importlib = false,
-		group = nil,
-		python_path = nil,
-		search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir"),
+		opts = { search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir") },
 		fixture = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json"),
 	},
 	{
 		use_importlib = false,
-		group = "other",
-		python_path = nil,
-		search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir"),
+		opts = {
+			group = "other",
+			search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir"),
+		},
 		fixture = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json"),
 	},
 	{
 		use_importlib = false,
-		group = "non-existent-group",
-		python_path = nil,
-		search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir"),
+		opts = {
+			group = "non-existent-group",
+			search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir"),
+		},
 		fixture = {},
 	},
 }
 
-for _, opts in ipairs(AENTRY_POINTS_CASES) do
+for _, case in ipairs(AENTRY_POINTS_CASES) do
 	local test_name = "should list entry-points with"
-	for key, value in pairs(opts) do
-		if key ~= "fixture" and value ~= nil then
+	for key, value in pairs(case.opts) do
+		if value ~= nil then
 			test_name = test_name .. (" %s=`%s`"):format(key, value)
 		end
 	end
 
 	describe("aentry_points tests:", function()
 		it(test_name, function()
-			local actual = assert(ep.aentry_points(opts))
+			local actual
+			if case.use_importlib then
+				actual = assert(ep.aentry_points_importlib(case.opts))
+			else
+				actual = assert(ep.aentry_points_ts(case.opts))
+			end
 			sort_entry_points(actual)
 
-			local expected = opts.fixture
+			local expected = case.fixture
 			-- If `group` is provided, filter fixture
-			if opts.group ~= nil then
+			if case.opts.group ~= nil then
 				expected = vim.fn.filter(expected, function(_, value)
-					return value.group == opts.group
+					return value.group == case.opts.group
 				end)
 			end
 
@@ -124,20 +121,25 @@ end)
 local AENTRY_POINT_LOCATION_CASES = {
 	{
 		use_importlib = true,
-		search_dir = nil,
-		python_path = nil,
 		fixture = tutils.get_fixture("entry_points", "mock_entry_points.json"),
 	},
 	{
 		use_importlib = false,
-		search_dir = MOCK_REPO_PATH,
-		python_path = nil,
+		opt = MOCK_REPO_PATH,
 		fixture = tutils.get_fixture("entry_points", "mock_entry_points_ts_only.json"),
 	},
 }
 
 for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 	local test_name = ("aentry_point_location tests, use_importlib = %s:"):format(opts.use_importlib)
+
+	local function test_func(def)
+		if opts.use_importlib then
+			return ep.aentry_point_location_importlib(def, opts.opt)
+		else
+			return ep.aentry_point_location_ts(def, opts.opt)
+		end
+	end
 
 	describe(test_name, function()
 		-- Skip expected failing entries
@@ -147,8 +149,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 
 		for _, case in ipairs(fixt) do
 			it("should find the correct location for `" .. case.name .. "`", function()
-				local actual, errmsg = ep.aentry_point_location(case, opts)
-				assert(actual, errmsg)
+				local actual = assert(test_func(case))
 				local expected_path = vim.fs.joinpath(TEST_PATH, "fixtures", case.rel_filepath)
 
 				assert.same(
@@ -165,7 +166,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 				value = { "hello", "no_such_function" },
 			}
 
-			local result, err = ep.aentry_point_location(def, opts)
+			local result, err = test_func(def)
 			assert.is_nil(result)
 			assert.no.is_nil(err)
 		end)

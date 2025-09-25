@@ -94,6 +94,10 @@ for _, opts in ipairs(PICKER_TEST_CASES) do
 end
 
 describe("Test entry_points picker: select failure -", function()
+	before_each(function()
+		vim.fn.execute("messages clear", "silent")
+	end)
+
 	it("ep5", function()
 		pickers.find_entry_points()
 
@@ -103,5 +107,8 @@ describe("Test entry_points picker: select failure -", function()
 		local last_buff_name = vim.api.nvim_buf_get_name(0)
 		actions.select_default(picker.prompt_bufnr)
 		assert_paths_same(last_buff_name, vim.api.nvim_buf_get_name(0))
+
+		local messages = vim.split(vim.fn.execute("messages", "silent"), "\n")
+		assert.are_equal("Entry-point origin could not be found!", messages[#messages])
 	end)
 end)
