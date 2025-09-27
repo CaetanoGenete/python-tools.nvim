@@ -1,4 +1,4 @@
-local async = require("python_tools.utils._async")
+local async = require("python_tools._async")
 local pyutils = require("python_tools.utils.python")
 local pyscripts = require("python_tools._scripts.python")
 local tsutils = require("python_tools.utils._treesitter")

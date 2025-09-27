@@ -1,4 +1,4 @@
-local async = require("python_tools.utils._async")
+local async = require("python_tools._async")
 
 local conf = require("telescope.config").values
 local picker = require("telescope.pickers")
