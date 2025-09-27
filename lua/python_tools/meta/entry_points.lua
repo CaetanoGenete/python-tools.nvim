@@ -367,7 +367,7 @@ function M.aentry_point_location_ts(def, search_dir)
 	local file_path = nil
 	for _, candidate in ipairs(MODULE_SEARCH_DIRS) do
 		local candidate_path = vim.fs.joinpath(project_dir, candidate, module_path)
-		if async.fs_stat(candidate_path) == nil then
+		if async.uv.fs_stat(candidate_path) == nil then
 			file_path = candidate_path
 			break
 		end
