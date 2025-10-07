@@ -1,7 +1,7 @@
 require("test.utils")
 require("plenary.busted")
 
-local async = require("python_tools.utils._async")
+local async = require("python_tools._async")
 
 local MOCK_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-repo")
 local MOCK_SETUP_PY_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-setup-py-repo")

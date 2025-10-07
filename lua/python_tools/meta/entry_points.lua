@@ -1,4 +1,4 @@
-local async = require("python_tools.utils._async")
+local async = require("python_tools._async")
 local pyutils = require("python_tools.utils.python")
 local pyscripts = require("python_tools._scripts.python")
 local tsutils = require("python_tools.utils._treesitter")
@@ -185,7 +185,7 @@ end
 ---@param search_dir string
 ---@return string? project_file, string? errmsg
 local function afind_project_file(search_dir)
-	local project_file, find_err = async.findfile(search_dir, { "pyproject.toml", "setup.py" })
+	local project_file, find_err = async.findfile(search_dir, { "setup.py", "pyproject.toml" })
 	return project_file, find_err
 end
 
@@ -367,7 +367,7 @@ function M.aentry_point_location_ts(def, search_dir)
 	local file_path = nil
 	for _, candidate in ipairs(MODULE_SEARCH_DIRS) do
 		local candidate_path = vim.fs.joinpath(project_dir, candidate, module_path)
-		if async.fs_stat(candidate_path) == nil then
+		if async.uv.fs_stat(candidate_path) == nil then
 			file_path = candidate_path
 			break
 		end

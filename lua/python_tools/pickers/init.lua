@@ -1,4 +1,5 @@
-local async = require("python_tools.utils._async")
+local async = require("python_tools._async")
+local actions = require("telescope.actions")
 
 local conf = require("telescope.config").values
 local picker = require("telescope.pickers")
@@ -6,10 +7,11 @@ local finders = require("telescope.finders")
 local previewers = require("telescope.previewers")
 local entry_display = require("telescope.pickers.entry_display")
 local action_set = require("telescope.actions.set")
-local action_state = require("telescope.actions.state")
 local putils = require("telescope.previewers.utils")
 
 local ep_tools = require("python_tools.meta.entry_points")
+local ep_actions = require("python_tools.pickers._entry_point_actions")
+local utils = require("python_tools.pickers._utils")
 
 ---@class	EntryPointPickerOptions : EntryPointsImportlibOptions, EntryPointsTSOptions
 ---@field use_importlib boolean?
@@ -42,8 +44,6 @@ local DEFAULT_EP_PICKER_CONFIG = {
 	preview = {},
 }
 
-local ns_previewer = vim.api.nvim_create_namespace("telescope.previewers")
-
 local M = {}
 
 ---@class EntryPointEntry
@@ -53,49 +53,6 @@ local M = {}
 ---@field state "done"|"pending"|"debounce"|nil
 ---@field filename string?
 ---@field lnum integer?
-
----@param entry EntryPointEntry
----@param opts EntryPointPickerOptions
-local function aset_entry_point_location(entry, opts)
-	entry.state = "pending"
-
-	local ok, ep
-	if opts.use_importlib then
-		ok, ep = pcall(ep_tools.aentry_point_location_importlib, entry.value, opts.python_path)
-	else
-		ok, ep = pcall(ep_tools.aentry_point_location_ts, entry.value, opts.search_dir)
-	end
-
-	if ok and ep ~= nil then
-		entry.filename = ep.filename
-		entry.lnum = ep.lineno
-	end
-
-	entry.state = "done"
-end
-
---- Centers the viewport at `lnum` for the given `bufnr`.
----
---- Also moves the cursor to `winid`.
----@param winid integer
----@param bufnr integer
----@param lnum integer?
-local function jump_to_line(winid, bufnr, lnum)
-	pcall(vim.api.nvim_buf_clear_namespace, bufnr, ns_previewer, 0, -1)
-	if lnum == nil or lnum == 0 then
-		return
-	end
-
-	pcall(vim.api.nvim_buf_set_extmark, bufnr, ns_previewer, lnum - 1, 0, {
-		end_row = lnum,
-		hl_group = "TelescopePreviewLine",
-	})
-	pcall(vim.api.nvim_win_set_cursor, winid, { lnum, 0 })
-
-	vim.api.nvim_buf_call(bufnr, function()
-		vim.cmd("norm! zz")
-	end)
-end
 
 ---@class PreviewerState
 ---@field bufnr integer
@@ -113,7 +70,7 @@ local function render_entry(state, entry, opts)
 			preview = opts.preview,
 			---@param bufnr integer
 			callback = function(bufnr)
-				jump_to_line(state.winid, bufnr, entry.lnum)
+				utils.jump_to_line(state.winid, bufnr, entry.lnum)
 			end,
 			file_encoding = opts.file_encoding,
 		})
@@ -125,10 +82,6 @@ local function render_entry(state, entry, opts)
 			opts.preview.msg_bg_fillchar
 		)
 	end
-end
-
-local function clear_cmdline()
-	vim.api.nvim_echo({ { "" } }, false, {})
 end
 
 ---@param eps EntryPointDef[]
@@ -192,7 +145,7 @@ local function pick_entry_point(eps, opts)
 					end
 				end
 
-				aset_entry_point_location(entry, opts)
+				ep_actions.aset_entry_point_location(entry, opts)
 
 				-- Avoid rendering if the user has selected something else in the meantime
 				if selected == entry then
@@ -217,34 +170,18 @@ local function pick_entry_point(eps, opts)
 
 	local attach_mappings = function()
 		---@diagnostic disable-next-line: undefined-field
-		action_set.select:replace(function(prompt_bufnr, type)
-			---@type EntryPointEntry
-			local entry = action_state.get_selected_entry()
+		action_set.select:replace(ep_actions.select(opts))
 
-			if entry.state == nil then
-				async.run(aset_entry_point_location, entry, opts)
-			end
+		actions.send_selected_to_qflist:replace(ep_actions.send_selected_eps_to_qf(opts, " ", "qf"))
+		actions.add_selected_to_qflist:replace(ep_actions.send_selected_eps_to_qf(opts, "a", "qf"))
+		actions.send_to_qflist:replace(ep_actions.send_all_eps_to_qf(opts, " ", "qf"))
+		actions.add_to_qflist:replace(ep_actions.send_all_eps_to_qf(opts, "a", "qf"))
 
-			vim.wait(opts.select_timeout_ms, function()
-				return entry.state == "done"
-			end, 10)
+		actions.send_selected_to_loclist:replace(ep_actions.send_selected_eps_to_qf(opts, " ", "loc"))
+		actions.add_selected_to_loclist:replace(ep_actions.send_selected_eps_to_qf(opts, "a", "loc"))
+		actions.send_to_loclist:replace(ep_actions.send_all_eps_to_qf(opts, " ", "loc"))
+		actions.add_to_loclist:replace(ep_actions.send_all_eps_to_qf(opts, "a", "loc"))
 
-			if entry.filename ~= nil then
-				clear_cmdline()
-				action_set.edit(prompt_bufnr, action_state.select_key_to_edit_key(type))
-				return
-			end
-
-			local errmsg = ""
-			if entry.state == "pending" then
-				errmsg = "Entry-point took too long to find! Try again, or skip."
-			elseif entry.state == "done" then
-				errmsg = "Entry-point origin could not be found!"
-			else
-				errmsg = "Something went wrong!"
-			end
-			vim.notify(errmsg, vim.log.levels.ERROR)
-		end)
 		return true
 	end
 
@@ -281,7 +218,7 @@ function M.find_entry_points(opts)
 			return
 		end
 
-		clear_cmdline()
+		utils.clear_cmdline()
 		pick_entry_point(eps, opts)
 	end
 
