@@ -1,5 +1,3 @@
----@require "telescope.pickers"
-
 local M = {}
 
 local action_state = require("telescope.actions.state")
@@ -83,7 +81,7 @@ end
 
 ---@param eps EntryPointEntry[]
 ---@param opts EntryPointPickerOptions
----@param picker Picker
+---@param picker any
 ---@param mode string?
 ---@param target "loc"|"qf"
 local function _eps_to_entries(eps, opts, picker, mode, target)
@@ -145,7 +143,6 @@ end
 ---@return fun(prompt_bufnr: number)
 function M.send_all_eps_to_qf(opts, mode, target)
 	return function(prompt_bufnr)
-		---@type Picker
 		local picker = action_state.get_current_picker(prompt_bufnr)
 
 		local entries = {}
