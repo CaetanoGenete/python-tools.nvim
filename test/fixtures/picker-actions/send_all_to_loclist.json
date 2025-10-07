@@ -1,0 +1,44 @@
+[
+  {
+    "text": "(console_scripts) ep1",
+    "lnum": 6,
+    "col": 1,
+    "valid": 1,
+    "type": ""
+  },
+  {
+    "text": "(console_scripts) ep2",
+    "lnum": 14,
+    "col": 1,
+    "valid": 1,
+    "type": ""
+  },
+  {
+    "text": "(console_scripts) ep5",
+    "lnum": 1,
+    "col": 1,
+    "valid": 0,
+    "type": "E"
+  },
+  {
+    "text": "(my.group) ep3",
+    "lnum": 2,
+    "col": 1,
+    "valid": 1,
+    "type": ""
+  },
+  {
+    "text": "(my.group) ep4",
+    "lnum": 0,
+    "col": 1,
+    "valid": 0,
+    "type": ""
+  },
+  {
+    "text": "(my.group) ep6",
+    "lnum": 12,
+    "col": 1,
+    "valid": 1,
+    "type": ""
+  }
+]

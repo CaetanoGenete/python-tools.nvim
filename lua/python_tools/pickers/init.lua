@@ -1,4 +1,5 @@
 local async = require("python_tools._async")
+local actions = require("telescope.actions")
 
 local conf = require("telescope.config").values
 local picker = require("telescope.pickers")
@@ -170,6 +171,17 @@ local function pick_entry_point(eps, opts)
 	local attach_mappings = function()
 		---@diagnostic disable-next-line: undefined-field
 		action_set.select:replace(ep_actions.select(opts))
+
+		actions.send_selected_to_qflist:replace(ep_actions.send_selected_eps_to_qf(opts, " ", "qf"))
+		actions.add_selected_to_qflist:replace(ep_actions.send_selected_eps_to_qf(opts, "a", "qf"))
+		actions.send_to_qflist:replace(ep_actions.send_all_eps_to_qf(opts, " ", "qf"))
+		actions.add_to_qflist:replace(ep_actions.send_all_eps_to_qf(opts, "a", "qf"))
+
+		actions.send_selected_to_loclist:replace(ep_actions.send_selected_eps_to_qf(opts, " ", "loc"))
+		actions.add_selected_to_loclist:replace(ep_actions.send_selected_eps_to_qf(opts, "a", "loc"))
+		actions.send_to_loclist:replace(ep_actions.send_all_eps_to_qf(opts, " ", "loc"))
+		actions.add_to_loclist:replace(ep_actions.send_all_eps_to_qf(opts, "a", "loc"))
+
 		return true
 	end
 

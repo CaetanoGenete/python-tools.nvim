@@ -185,7 +185,7 @@ end
 ---@param search_dir string
 ---@return string? project_file, string? errmsg
 local function afind_project_file(search_dir)
-	local project_file, find_err = async.findfile(search_dir, { "pyproject.toml", "setup.py" })
+	local project_file, find_err = async.findfile(search_dir, { "setup.py", "pyproject.toml" })
 	return project_file, find_err
 end
 

@@ -112,3 +112,63 @@ describe("Test entry_points picker: select failure -", function()
 		assert.are_equal("Entry-point origin could not be found!", messages[#messages])
 	end)
 end)
+
+local QFLIST_TEST_CASES = {
+	{
+		fixture = tutils.get_fixture("picker-actions", "send_all_to_qflist.json"),
+		action = actions.send_to_qflist,
+		list = "qf",
+	},
+	{
+		fixture = tutils.get_fixture("picker-actions", "send_all_to_loclist.json"),
+		action = actions.send_to_loclist,
+		list = "loc",
+	},
+}
+
+---@param list table<string, any>
+local function sort_qflist(list)
+	table.sort(list, function(lhs, rhs)
+		return lhs.text < rhs.text
+	end)
+end
+
+---@param expected table<string, any>
+---@param actual table<string, any>
+local function assert_tbl_subset(expected, actual)
+	local filtered_actual = {}
+	for k in pairs(expected) do
+		filtered_actual[k] = actual[k]
+	end
+
+	assert.same(expected, filtered_actual)
+end
+
+describe("Test entry_points picker: actions - ", function()
+	for _, case in ipairs(QFLIST_TEST_CASES) do
+		it("Should send all entires to " .. case.list .. "list", function()
+			pickers.find_entry_points()
+
+			local picker = wait_for_picker()
+			case.action(picker.prompt_bufnr)
+
+			local actual
+			assert_poll(8000, function()
+				if case.list == "qf" then
+					actual = vim.fn.getqflist()
+				else
+					actual = vim.fn.getloclist(picker.original_win_id)
+				end
+				return #actual > 0
+			end)
+
+			sort_qflist(actual)
+			sort_qflist(case.fixture)
+
+			assert.same(#case.fixture, #actual)
+			for i = 1, #actual do
+				assert_tbl_subset(case.fixture[i], actual[i])
+			end
+		end)
+	end
+end)
