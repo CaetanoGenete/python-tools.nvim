@@ -38,8 +38,10 @@ end
 ---
 ---@param eps EntryPointEntry[]
 ---@param opts EntryPointPickerOptions
+---@return integer
 local function wait_completed(eps, opts)
 	local pending = 0
+	local last_update = os.clock()
 
 	for _, entry in ipairs(eps) do
 		if entry.state ~= "done" then
@@ -48,6 +50,7 @@ local function wait_completed(eps, opts)
 
 		if entry.state == nil then
 			async.run_callback(M.aset_entry_point_location, function(ok, _entry)
+				last_update = os.clock()
 				if ok and _entry.state == "done" then
 					pending = pending - 1
 				end
@@ -55,9 +58,19 @@ local function wait_completed(eps, opts)
 		end
 	end
 
-	vim.wait(opts.select_timeout_ms, function()
+	if pending > 30 then
+		vim.notify("There are a lot of entrypoints, this might take a while...", vim.log.levels.INFO)
+	end
+
+	vim.wait(opts.select_timeout_ms * pending, function()
+		if (os.clock() - last_update) * 1000 > opts.select_timeout_ms * 1.1 then
+			return true
+		end
+
 		return pending == 0
 	end, 10)
+
+	return pending
 end
 
 --- Creates replacement telescope action to select entrypoints.
@@ -97,7 +110,9 @@ end
 ---@param mode string?
 ---@param target _targets
 local function _eps_to_qf_entries(eps, opts, picker, mode, target)
-	wait_completed(eps, opts)
+	if wait_completed(eps, opts) > 0 then
+		vim.notify("Timeout! Not all entrypoints were loaded in time...", vim.log.levels.ERROR)
+	end
 
 	local qf_entries = {}
 	for _, ep in ipairs(eps) do
