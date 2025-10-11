@@ -1,7 +1,10 @@
 ---@class _async
-local M = {}
+local M = {
+	uv = require("python_tools._async.uv"),
+}
 
----Executes an async function.
+--- Executes an async function.
+---
 ---@param async_function fun(...): ...:any
 function M.run(async_function, ...)
 	coroutine.resume(coroutine.create(async_function), ...)
@@ -9,8 +12,8 @@ end
 
 --- Schedules an async function for execution.
 ---
---- When the function completes it will invoke `callback` on NeoVim's main
---- event-loop.
+--- When the function completes it will invoke `callback`.
+---
 ---@generic R
 ---@param async_function fun(...): R Async function to be scheduleded.
 ---@param callback fun(success: boolean, result: R?) Callback to be executed upon completion.
@@ -22,13 +25,13 @@ function M.run_callback(async_function, callback, ...)
 end
 
 local wrap = require("python_tools._async._utils").wrap
-M.uv = require("python_tools._async.uv")
 
 ---@async
 ---@type fun(cmd:string[], opts:vim.SystemOpts): vim.SystemCompleted
 M.system = wrap(vim.system, 2)
 
----Pause execution for `duration` milliseconds.
+--- Pause execution for `duration` milliseconds.
+---
 ---@async
 ---@param duration integer in milliseconds.
 function M.sleep(duration)
@@ -41,7 +44,9 @@ function M.sleep(duration)
 end
 
 --- Returns the contents of the file at `path`.
+---
 ---@async
+---@nodiscard
 ---@param path string
 ---@return string? content, string? errmsg
 function M.read_file(path)
@@ -66,7 +71,9 @@ function M.read_file(path)
 end
 
 --- Searches current and all parent directories for `file`.
+---
 ---@async
+---@nodiscard
 ---@param path string the directory wherein to start the search. Will be normalized by
 --- `vim.fs.normalize` first.
 ---@param search string|string[] The basename to search for. If a list is provided, the first match

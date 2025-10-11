@@ -8,6 +8,10 @@ local utils = require("python_tools.pickers._utils")
 local action_set = require("telescope.actions.set")
 local actions = require("telescope.actions")
 
+--- Populates location information for the provided `entry`.
+---
+--- Note: this operation is performed inplace.
+---
 ---@param entry EntryPointEntry
 ---@param opts EntryPointPickerOptions
 ---@return EntryPointEntry
@@ -30,6 +34,8 @@ function M.aset_entry_point_location(entry, opts)
 	return entry
 end
 
+--- Ensures all entrypoint locations are loaded, or have failed.
+---
 ---@param eps EntryPointEntry[]
 ---@param opts EntryPointPickerOptions
 local function wait_completed(eps, opts)
@@ -54,6 +60,8 @@ local function wait_completed(eps, opts)
 	end, 10)
 end
 
+--- Creates replacement telescope action to select entrypoints.
+---
 ---@param opts EntryPointPickerOptions
 function M.select(opts)
 	return function(prompt_bufnr, type)
@@ -79,12 +87,16 @@ function M.select(opts)
 	end
 end
 
+---@alias _targets
+---| "loc" Send to loclist
+---| "qf" Send to quickfix list
+
 ---@param eps EntryPointEntry[]
 ---@param opts EntryPointPickerOptions
 ---@param picker any
 ---@param mode string?
----@param target "loc"|"qf"
-local function _eps_to_entries(eps, opts, picker, mode, target)
+---@param target _targets
+local function _eps_to_qf_entries(eps, opts, picker, mode, target)
 	wait_completed(eps, opts)
 
 	local qf_entries = {}
@@ -93,7 +105,7 @@ local function _eps_to_entries(eps, opts, picker, mode, target)
 			filename = ep.filename,
 			lnum = ep.lnum,
 			col = 1,
-			text = "(" .. ep.value.group .. ") " .. ep.value.name,
+			text = ("(%s) %s"):format(ep.value.group, ep.value.name),
 		}
 
 		-- If the entrypoint cannot be found, still display it, but with an error.
@@ -125,13 +137,14 @@ end
 ---
 ---@param opts EntryPointPickerOptions
 ---@param mode string?
----@param target "loc"|"qf"
+---@param target _targets
 ---@return fun(prompt_bufnr: number)
 function M.send_selected_eps_to_qf(opts, mode, target)
 	return function(prompt_bufnr)
 		local picker = action_state.get_current_picker(prompt_bufnr)
+
 		actions.close(prompt_bufnr)
-		_eps_to_entries(picker:get_multi_selection(), opts, picker, mode, target)
+		_eps_to_qf_entries(picker:get_multi_selection(), opts, picker, mode, target)
 	end
 end
 
@@ -139,7 +152,7 @@ end
 ---
 ---@param opts EntryPointPickerOptions
 ---@param mode string?
----@param target "loc"|"qf"
+---@param target _targets
 ---@return fun(prompt_bufnr: number)
 function M.send_all_eps_to_qf(opts, mode, target)
 	return function(prompt_bufnr)
@@ -151,7 +164,7 @@ function M.send_all_eps_to_qf(opts, mode, target)
 		end
 
 		actions.close(prompt_bufnr)
-		_eps_to_entries(entries, opts, picker, mode, target)
+		_eps_to_qf_entries(entries, opts, picker, mode, target)
 	end
 end
 

@@ -3,6 +3,7 @@ local async = require("python_tools._async")
 local M = {}
 
 ---@generic T
+---@nodiscard
 ---@param script string The script to invoke.
 ---@param map_fn fun(result: string): T
 ---@return fun(python_path: string, args: (string|nil)[]): ...: T?,integer
