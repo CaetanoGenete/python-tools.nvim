@@ -6,12 +6,13 @@ local unpack = unpack or table.unpack
 -- Bad things seem to happen if the coroutine is resumed during fast events.
 local safe_resume = vim.schedule_wrap(coroutine.resume)
 
+---@nodiscard
 function M.wrap(callback_fn, exp_args)
 	---@async
 	local function async_fn(...)
 		local nargs = select("#", ...)
 		if exp_args ~= nargs then
-			error("This function only accepts `" .. exp_args .. "` but `" .. nargs .. "` passed!")
+			error(("This function only accepts `%s` but `%s` passed!"):format(exp_args, nargs))
 		end
 
 		local coro = assert(coroutine.running(), "Async function called outside of coroutine!")

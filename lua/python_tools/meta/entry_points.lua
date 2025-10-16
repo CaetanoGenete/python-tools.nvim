@@ -34,6 +34,7 @@ local M = {}
 --- [aentry_points_ts](lua://entry_points.aentry_points_ts).
 ---
 ---@async
+---@nodiscard
 ---@param options EntryPointsImportlibOptions?
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
@@ -131,6 +132,8 @@ local SETUP_PY_EP_QUERY = vim.treesitter.query.parse(
 ---
 --- For guaranteed results, see [aentry_points](lua://entry_points.aentry_points_importlib).
 ---
+---@async
+---@nodiscard
 ---@param project_file string Path to *setup.py* or *pyproject.toml*.
 ---@param group string? Optional filter.
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
@@ -182,6 +185,7 @@ function M.aentry_points_from_project(project_file, group)
 end
 
 ---@async
+---@nodiscard
 ---@param search_dir string
 ---@return string? project_file, string? errmsg
 local function afind_project_file(search_dir)
@@ -225,6 +229,7 @@ end
 --- those defined by the current repository.
 ---
 ---@async
+---@nodiscard
 ---@param options EntryPointsTSOptions?
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
@@ -273,6 +278,7 @@ local ROOT_ATTR_QUERY_STRING = [[
 ---
 --- For simple *entry-points*, it should be more accurate.
 ---@async
+---@nodiscard
 ---@param def EntryPointDef
 ---@param file_path string
 ---@return EntryPoint? ep, string? errmsg

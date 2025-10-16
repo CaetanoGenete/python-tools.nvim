@@ -13,8 +13,47 @@ local ep_tools = require("python_tools.meta.entry_points")
 local ep_actions = require("python_tools.pickers._entry_point_actions")
 local utils = require("python_tools.pickers._utils")
 
----@class	EntryPointPickerOptions : EntryPointsImportlibOptions, EntryPointsTSOptions
+---@class	EntryPointPickerOptions
+--- Whether to use python's [importlib](https://docs.python.org/3/library/importlib.html) module
+--- when determine entrypoints.
+---
+--- If `true`, will use:
+--- - [aentry_points_importlib](lua://entry_points.aentry_points_importlib)
+--- - [aentry_point_location_importlib](lua://entry_points.aentry_point_location_importlib)
+--- to evaluate all available entrypoints, and their location in source.
+---
+--- Otherwise, if `false`:
+--- - [aentry_points_ts](lua://entry_points.aentry_points_ts)
+--- - [aentry_point_location_ts](lua://entry_points.aentry_point_location_ts)
+--- will be used instead.
+---
+--- The two modes are **not** intended to be interchangeable, and are unlikely to display the same
+--- results. There are distinct advantages and disadvantages to either choice, a deeper discussion
+--- of which is presented in the docstrings for:
+--- - [aentry_points_importlib](lua://entry_points.aentry_points_importlib)
+--- - [aentry_points_ts](lua://entry_points.aentry_points_ts)
+---
+--- Briefly, `use_importlib=true` is more accurate, while the converse is more *flexible*.
+---
+--- Defaults to `true`.
 ---@field use_importlib boolean?
+--- See [EntryPointsImportlibOptions.group](lua://EntryPointsImportlibOptions.group).
+--- - [aentry_point_location_ts](lua://entry_points.aentry_point_location_ts)
+---
+--- Defaults to `nil`.
+---@field group string?
+--- Only applicable if `use_importlib=false`.
+---
+--- See [EntryPointsTSOptions.python_path](lua://EntryPointsTSOptions.search_dir)
+---
+--- Defaults to `nil`.
+---@field search_dir string?
+--- Only applicable if `use_importlib=true`.
+---
+--- See [EntryPointsImportlibOptions.python_path](lua://EntryPointsImportlibOptions.python_path)
+---
+--- Defaults to `nil`.
+---@field python_path string?
 --- Maximum display width, in the *results* window, for the entry-point group.
 ---
 --- Defaults `12`.

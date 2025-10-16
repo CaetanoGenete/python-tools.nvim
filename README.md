@@ -20,12 +20,25 @@ more details on what each option does.
 ```lua
 -- Options are all defaults, no need to specify them, unless you really want to.
 require("python_tools.pickers").find_entry_points({
+	-- Whether to use python's [importlib](https://docs.python.org/3/library/importlib.html) module
+	-- when determine entrypoints.
+	--
+	-- `use_importlib=true` provides a more accurate implementation, while the
+	-- converse is more *flexible* and independant of the python environment.
+	use_importlib = true,
 	-- Filter selection to entry-points under this `group`. If unset, looks for
-	-- ALL entry-points. See https://packaging.python.org/en/latest/specifications/entry-points/#data-model
+	-- ALL entry-points. See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model>
 	-- for more details on what an entry-point group is.
 	group = nil,
-	-- If `true`, searches the current active python environment, otherwise, parses the project file.
-	use_importlib = true,
+	-- Only applicable if `use_importlib=false`.
+	--
+	-- All parent directories of this value will be searched to discover either
+	-- a `pyproject.toml` or `setup.py` file, from which the entry-points will be read.
+	--
+	-- Defaults to the current working directory.
+	search_dir = nil,
+	-- Only applicable if `use_importlib=true`.
+	--
 	-- Path to the python environment binary, wherein to look for entry-points.
 	--
 	-- The path is resolved to be the first non-nil value from:
