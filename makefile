@@ -19,3 +19,6 @@ type-check:
 
 .PHONY: test-dev
 test-dev: test-3.12 type-check
+
+.PHONY: check-format
+check-formatting: stylua -c .

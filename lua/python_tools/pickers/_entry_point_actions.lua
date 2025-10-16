@@ -38,7 +38,8 @@ end
 ---
 ---@param eps EntryPointEntry[]
 ---@param opts EntryPointPickerOptions
----@return integer
+---@return integer remaining On timeout, returns the number of entrypoints which have not been
+--- loaded.
 local function wait_completed(eps, opts)
 	local pending = 0
 	local last_update = os.clock()
