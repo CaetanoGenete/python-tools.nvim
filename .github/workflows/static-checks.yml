@@ -31,6 +31,13 @@ jobs:
 
           mkdir -p ${{ env.TEST_PLUGIN_PATH }}
 
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: 4.1.0
+          args: --check .
+
       - name: Install nvim plugins
         working-directory: ${{ env.TEST_PLUGIN_PATH }}
         run: |
