@@ -1,4 +1,4 @@
-name: Check typing
+name: Static checks
 env:
   TEST_PLUGIN_PATH: "../nvim-plugins/"
 
@@ -35,7 +35,7 @@ jobs:
         uses: JohnnyMorganz/stylua-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          version: 4.1.0
+          version: v4.1.0
           args: --check .
 
       - name: Install nvim plugins
