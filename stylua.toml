@@ -1,5 +1,5 @@
 syntax = "All"
-line_endings = "Windows"
+line_endings = "Unix"
 quote_style = "AutoPreferDouble"
 call_parentheses = "Always"
 collapse_simple_statement = "Never"
