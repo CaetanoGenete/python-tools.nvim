@@ -13,6 +13,8 @@ return {
 
 ### Entry-point picker
 
+![entrypoints_demo](./docs/assets/pick_entrypoints_demo.gif)
+
 Opens a telescope picker, with option to choose from entry-points available in
 the current environment. See `python_tools.pickers.EntryPointPickerOptions` for
 more details on what each option does.
