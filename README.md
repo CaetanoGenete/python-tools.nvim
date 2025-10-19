@@ -76,9 +76,11 @@ entry-point in a debug context. Since _nvim-dap_ supports supplying threads as
 arguments, `aentry_points_ts` can be used to select all the entry points defined
 by the project.
 
-> [!NOTE] Here it is preferable to use `aentry_points_ts` to limit the returned
-> entry points to those defined by the project. `aentry_points_importlib` will
-> also list console scripts provided by _setuptools_ and _black_, for example.
+> [!NOTE]
+>
+> Here it is preferable to use `aentry_points_ts` to limit the returned entry
+> points to those defined by the project. `aentry_points_importlib` will also
+> list console scripts provided by _setuptools_ and _black_, for example.
 
 ```lua
 ---@param dap_coro thread
