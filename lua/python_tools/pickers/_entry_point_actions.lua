@@ -8,6 +8,10 @@ local utils = require("python_tools.pickers._utils")
 local action_set = require("telescope.actions.set")
 local actions = require("telescope.actions")
 
+--- Populates location information for the provided `entry`.
+---
+--- Note: this operation is performed inplace.
+---
 ---@param entry EntryPointEntry
 ---@param opts EntryPointPickerOptions
 ---@return EntryPointEntry
@@ -30,10 +34,15 @@ function M.aset_entry_point_location(entry, opts)
 	return entry
 end
 
+--- Ensures all entrypoint locations are loaded, or have failed.
+---
 ---@param eps EntryPointEntry[]
 ---@param opts EntryPointPickerOptions
+---@return integer remaining On timeout, returns the number of entrypoints which have not been
+--- loaded.
 local function wait_completed(eps, opts)
 	local pending = 0
+	local last_update = os.clock()
 
 	for _, entry in ipairs(eps) do
 		if entry.state ~= "done" then
@@ -42,6 +51,7 @@ local function wait_completed(eps, opts)
 
 		if entry.state == nil then
 			async.run_callback(M.aset_entry_point_location, function(ok, _entry)
+				last_update = os.clock()
 				if ok and _entry.state == "done" then
 					pending = pending - 1
 				end
@@ -49,11 +59,23 @@ local function wait_completed(eps, opts)
 		end
 	end
 
-	vim.wait(opts.select_timeout_ms, function()
+	if pending > 30 then
+		vim.notify("There are a lot of entrypoints, this might take a while...", vim.log.levels.INFO)
+	end
+
+	vim.wait(opts.select_timeout_ms * pending, function()
+		if (os.clock() - last_update) * 1000 > opts.select_timeout_ms * 1.1 then
+			return true
+		end
+
 		return pending == 0
 	end, 10)
+
+	return pending
 end
 
+--- Creates replacement telescope action to select entrypoints.
+---
 ---@param opts EntryPointPickerOptions
 function M.select(opts)
 	return function(prompt_bufnr, type)
@@ -79,13 +101,19 @@ function M.select(opts)
 	end
 end
 
+---@alias _targets
+---| "loc" Send to loclist
+---| "qf" Send to quickfix list
+
 ---@param eps EntryPointEntry[]
 ---@param opts EntryPointPickerOptions
 ---@param picker any
 ---@param mode string?
----@param target "loc"|"qf"
-local function _eps_to_entries(eps, opts, picker, mode, target)
-	wait_completed(eps, opts)
+---@param target _targets
+local function _eps_to_qf_entries(eps, opts, picker, mode, target)
+	if wait_completed(eps, opts) > 0 then
+		vim.notify("Timeout! Not all entrypoints were loaded in time...", vim.log.levels.ERROR)
+	end
 
 	local qf_entries = {}
 	for _, ep in ipairs(eps) do
@@ -93,7 +121,7 @@ local function _eps_to_entries(eps, opts, picker, mode, target)
 			filename = ep.filename,
 			lnum = ep.lnum,
 			col = 1,
-			text = "(" .. ep.value.group .. ") " .. ep.value.name,
+			text = ("(%s) %s"):format(ep.value.group, ep.value.name),
 		}
 
 		-- If the entrypoint cannot be found, still display it, but with an error.
@@ -125,13 +153,14 @@ end
 ---
 ---@param opts EntryPointPickerOptions
 ---@param mode string?
----@param target "loc"|"qf"
+---@param target _targets
 ---@return fun(prompt_bufnr: number)
 function M.send_selected_eps_to_qf(opts, mode, target)
 	return function(prompt_bufnr)
 		local picker = action_state.get_current_picker(prompt_bufnr)
+
 		actions.close(prompt_bufnr)
-		_eps_to_entries(picker:get_multi_selection(), opts, picker, mode, target)
+		_eps_to_qf_entries(picker:get_multi_selection(), opts, picker, mode, target)
 	end
 end
 
@@ -139,7 +168,7 @@ end
 ---
 ---@param opts EntryPointPickerOptions
 ---@param mode string?
----@param target "loc"|"qf"
+---@param target _targets
 ---@return fun(prompt_bufnr: number)
 function M.send_all_eps_to_qf(opts, mode, target)
 	return function(prompt_bufnr)
@@ -151,7 +180,7 @@ function M.send_all_eps_to_qf(opts, mode, target)
 		end
 
 		actions.close(prompt_bufnr)
-		_eps_to_entries(entries, opts, picker, mode, target)
+		_eps_to_qf_entries(entries, opts, picker, mode, target)
 	end
 end
 

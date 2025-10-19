@@ -1,5 +1,6 @@
 local M = {}
 
+---@nodiscard
 ---@param nodes TSNode[]
 ---@param content string
 function M.bounding_text(nodes, content)

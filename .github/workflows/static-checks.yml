@@ -1,4 +1,4 @@
-name: Check typing
+name: Static checks
 env:
   TEST_PLUGIN_PATH: "../nvim-plugins/"
 
@@ -30,6 +30,13 @@ jobs:
           brew install lua-language-server
 
           mkdir -p ${{ env.TEST_PLUGIN_PATH }}
+
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v2.3.0
+          args: --check .
 
       - name: Install nvim plugins
         working-directory: ${{ env.TEST_PLUGIN_PATH }}

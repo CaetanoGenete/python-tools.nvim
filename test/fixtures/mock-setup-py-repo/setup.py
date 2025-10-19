@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(
+_ = setup(
     name="mock-setup_py-repo",
     version="0.1.0",
     entry_points={
