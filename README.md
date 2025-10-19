@@ -1,4 +1,6 @@
-A set of utilities for developing python NeoVim tooling.
+# python-tools.nvim
+
+A set of utilities for developing Neovim tooling for python.
 
 ## Installation
 
@@ -11,10 +13,10 @@ return {
 }
 ```
 
-## Requirements
+## Dependencies
 
-- [Telescope](https://github.com/nvim-telescope/telescope.nvim)
 - [NeoVim](https://github.com/neovim/neovim) 0.11
+- [Telescope](https://github.com/nvim-telescope/telescope.nvim) (Optional)
 
 ## Features
 
@@ -69,7 +71,7 @@ require("python_tools.pickers").find_entry_points({
 
 ## Recipes
 
-### Debugging entry points (using nvim-dap)
+### Debugging entry points (using [nvim-dap](https://github.com/mfussenegger/nvim-dap))
 
 The `python_tools.meta.entry_points` module can be used to easily execute an
 entry-point in a debug context. Since _nvim-dap_ supports supplying threads as
@@ -80,7 +82,7 @@ by the project.
 >
 > Here it is preferable to use `aentry_points_ts` to limit the returned entry
 > points to those defined by the project. `aentry_points_importlib` will also
-> list console scripts provided by _setuptools_ and _black_, for example.
+> list console scripts provided by _setuptools_, _black_, and other libraries.
 
 ```lua
 ---@param dap_coro thread
