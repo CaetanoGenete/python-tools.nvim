@@ -71,6 +71,20 @@ require("python_tools.pickers").find_entry_points({
 
 ## Recipes
 
+### List entry points relative to the current buffer
+
+By default, when `use_importlib=false`, the _current working directory_ is used
+to scan for entrypoints. However, In large mono repos, to prevent having to
+constanly switch directory, it may be convenient to list entry points releative
+to the _current buffer_. This can be done via the `search_dir` option.
+
+```lua
+require("python_tools.pickers").find_entry_points({
+	use_importlib = false,
+	search_dir = vim.fn.expand("%:p:h"),
+})
+```
+
 ### Debugging entry points (using [nvim-dap](https://github.com/mfussenegger/nvim-dap))
 
 The `python_tools.meta.entry_points` module can be used to easily execute an
@@ -137,6 +151,8 @@ acts as an adapter to allow debugpy to execute the entry point. **NOTE**, this
 script only works for python version _3.10+_.
 
 ```python
+# launcher.py
+
 from importlib.metadata import entry_points
 from sys import argv
 
