@@ -82,7 +82,7 @@ for _, case in ipairs(AENTRY_POINTS_CASES) do
 			if case.use_importlib then
 				actual = assert(ep.aentry_points_importlib(case.opts))
 			else
-				actual = assert(ep.aentry_points_ts(case.opts))
+				actual = assert(ep.aentry_points(case.opts))
 			end
 			sort_entry_points(actual)
 

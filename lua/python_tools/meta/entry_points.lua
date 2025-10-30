@@ -30,7 +30,7 @@ local M = {}
 ---
 --- This function will spawn a python subprocess, which, if available, will depend on the project's
 --- virtual environment. If this is undesirable, see
---- [aentry_points_ts](lua://entry_points.aentry_points_ts).
+--- [aentry_points](lua://entry_points.aentry_points).
 ---
 ---@async
 ---@nodiscard
@@ -167,7 +167,7 @@ end
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
-function M.aentry_points_ts(options)
+function M.aentry_points(options)
 	options = options or {}
 
 	local search_dir = options.search_dir or vim.fn.getcwd()

@@ -23,7 +23,7 @@ local utils = require("python_tools.pickers._utils")
 --- to evaluate all available entrypoints, and their location in source.
 ---
 --- Otherwise, if `false`:
---- - [aentry_points_ts](lua://entry_points.aentry_points_ts)
+--- - [aentry_points](lua://entry_points.aentry_points)
 --- - [aentry_point_location_ts](lua://entry_points.aentry_point_location_ts)
 --- will be used instead.
 ---
@@ -31,7 +31,7 @@ local utils = require("python_tools.pickers._utils")
 --- results. There are distinct advantages and disadvantages to either choice, a deeper discussion
 --- of which is presented in the docstrings for:
 --- - [aentry_points_importlib](lua://entry_points.aentry_points_importlib)
---- - [aentry_points_ts](lua://entry_points.aentry_points_ts)
+--- - [aentry_points](lua://entry_points.aentry_points)
 ---
 --- Briefly, `use_importlib=true` is more accurate, while the converse is more *flexible*.
 ---
@@ -265,7 +265,7 @@ function M.find_entry_points(opts)
 	if opts.use_importlib then
 		async.run_callback(ep_tools.aentry_points_importlib, on_endpoints, opts)
 	else
-		async.run_callback(ep_tools.aentry_points_ts, on_endpoints, opts)
+		async.run_callback(ep_tools.aentry_points, on_endpoints, opts)
 	end
 end
 
