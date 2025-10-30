@@ -30,6 +30,8 @@ local function make_ascript(script, map_fn)
 end
 
 M.alist_entry_points_importlib = make_ascript("list_entry_points.py", vim.json.decode)
+M.alist_entry_points_setuppy = make_ascript("extract_eps_from_setuppy.py", vim.json.decode)
+
 M.afind_entry_point_importlib = make_ascript("find_entry_point.py", vim.json.decode)
 M.afind_entry_point_origin_importlib = make_ascript("find_entry_point_origin.py", vim.fs.normalize)
 

@@ -102,7 +102,7 @@ end
 describe("aentry_points_from_project tests:", function()
 	it("should correctly list all available entry_points from mock-setup-py-repo", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
-		local actual = assert(ep.aentry_points_from_project(search_dir))
+		local actual = assert(ep.aentry_points_from_setuppy(search_dir))
 
 		local expected = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json")
 		sort_entry_points(actual)
@@ -110,11 +110,12 @@ describe("aentry_points_from_project tests:", function()
 		assert.same(expected, actual)
 	end)
 
-	it("should not fail if file is not the right format", function()
+	it("should fail if file is not the right format", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir", "placeholder.txt")
-		local actual = ep.aentry_points_from_project(search_dir)
+		local actual, err = ep.aentry_points_from_setuppy(search_dir)
 
-		assert.same(actual, {})
+		assert.no.same(err, nil)
+		assert.same(actual, nil)
 	end)
 end)
 
