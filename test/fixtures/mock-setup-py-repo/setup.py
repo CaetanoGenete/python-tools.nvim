@@ -1,4 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages, find_namespace_packages
+
+_ = find_packages()
+_ = find_namespace_packages()
 
 var = "ep2=hello:ep2"
 

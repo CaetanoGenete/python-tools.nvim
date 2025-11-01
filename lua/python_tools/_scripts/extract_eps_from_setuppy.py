@@ -11,6 +11,14 @@ except:
         @staticmethod
         def setup(**_): ...
 
+        @staticmethod
+        def find_packages(*_, **__):
+            return []
+
+        @staticmethod
+        def find_namespace_packages(*_, **__):
+            return []
+
     sys.modules["setuptools"] = setuptools
 
 

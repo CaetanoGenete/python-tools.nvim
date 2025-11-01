@@ -10,7 +10,7 @@ local actions = require("telescope.actions")
 
 --- Populates location information for the provided `entry`.
 ---
---- Note: this operation is performed inplace.
+--- Note: this operation is performed **inplace**.
 ---
 ---@param entry EntryPointEntry
 ---@param opts EntryPointPickerOptions
