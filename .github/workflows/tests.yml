@@ -10,11 +10,24 @@ jobs:
   unit_tests:
     name: unit tests
     runs-on: ${{ matrix.os }}
+    env:
+      PYTHON_VERSION: ${{ matrix.python }}
+      UV_PROJECT_ENVIRONMENT:
+        ./test/fixtures/mock-repo/.venv-${{ matrix.python }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022]
-        rev: [v0.11.0]
+        os:
+          - ubuntu-22.04
+          - windows-2022]
+        python:
+          - 3.8
+          - 3.9
+          - 3.10
+          - 3.11
+          - 3.12
+        rev:
+          - v0.11.0
 
     steps:
       - uses: actions/checkout@v4

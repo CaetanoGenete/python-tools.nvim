@@ -1,17 +1,15 @@
-SUPPORTED-VERSIONS:=3.8 3.9 3.10 3.11 3.12 3.13
-TEST-ENVS:=$(patsubst %, test-%, $(SUPPORTED-VERSIONS))
+PYTHON_VERSION ?= 3.12
+UV_PROJECT_ENVIRONMENT ?= ./test/fixtures/mock-repo/.venv
 
 MINIMAL_INIT:=./scripts/minimal_init.lua
 RC_PATH:=.luarc-ci.json
 
-# Targets: test-{version}
-.PHONY: $(TEST-ENVS)
-$(TEST-ENVS):
-	uv sync -p $(subst test-,,$@) --project ./test/fixtures/mock-repo/
-	nvim --headless --noplugin -u $(MINIMAL_INIT)  -c "PlenaryBustedDirectory test { minimal_init = '$(MINIMAL_INIT)' }"
+${UV_PROJECT_ENVIRONMENT}:
+	uv sync -p ${PYTHON_VERSION} --project ./test/fixtures/mock-repo/
 
 .PHONY: test
-test: $(TEST-ENVS)
+test: ${UV_PROJECT_ENVIRONMENT}
+	nvim --headless --noplugin -u $(MINIMAL_INIT)  -c "PlenaryBustedDirectory test { minimal_init = '$(MINIMAL_INIT)' }"
 
 .PHONY: type-check
 type-check:
@@ -23,5 +21,5 @@ check-formatting:
 	stylua -c .
 
 .PHONY: test-dev
-test-dev: type-check check-formatting test-3.12
+test-dev: type-check check-formatting test
 

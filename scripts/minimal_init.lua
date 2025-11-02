@@ -24,10 +24,11 @@ if not require("nvim-treesitter.parsers").has_parser("python") then
 	vim.cmd("TSInstallSync! python")
 end
 
+local venv_path = os.getenv("TEST_PLUGIN_PATH") or "./test/fixtures/mock-repo/.venv/"
 if vim.fn.has("win32") == 1 then
-	vim.g.pytools_default_python_path = "./test/fixtures/mock-repo/.venv/Scripts/python.exe"
+	vim.g.pytools_default_python_path = venv_path .. "Scripts/python.exe"
 else
-	vim.g.pytools_default_python_path = "./test/fixtures/mock-repo/.venv/bin/python"
+	vim.g.pytools_default_python_path = venv_path .. "bin/python"
 end
 
 -- Prevent messing up local SHADA during tests
