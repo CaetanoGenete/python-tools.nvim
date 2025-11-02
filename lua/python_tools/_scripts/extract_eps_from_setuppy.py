@@ -29,7 +29,7 @@ class EntryPoint(TypedDict):
 
 
 def to_entry_point(group: str, entry: str) -> EntryPoint:
-    ep, value = entry.split("=", 1)
+    ep, value = map(str.strip, entry.split("=", 1))
 
     return EntryPoint(
         group=group,
