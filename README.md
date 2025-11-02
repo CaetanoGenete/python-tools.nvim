@@ -17,6 +17,7 @@ return {
 
 - [NeoVim](https://github.com/neovim/neovim) 0.11
 - [Telescope](https://github.com/nvim-telescope/telescope.nvim) (Optional)
+- Python >=3.8 (Your milage may vary for earlier versions)
 
 ## Features
 
