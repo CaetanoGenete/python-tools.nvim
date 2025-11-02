@@ -1,3 +1,4 @@
+---@class utils
 local M = {}
 
 --- Gets the default python binary path.

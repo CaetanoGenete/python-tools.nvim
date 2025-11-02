@@ -1,53 +1,9 @@
 local async = require("python_tools._async")
 local pyutils = require("python_tools.utils.python")
 local pyscripts = require("python_tools._scripts.python")
-local tsutils = require("python_tools.utils._treesitter")
 
 ---@class entry_points
 local M = {}
-
----@class EntryPointsImportlibOptions
---- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
----
---- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
---- details on what an entry-point *group* is.
----
---- Defaults to `nil`.
----@field group string?
---- Path to the python environment binary, wherein to look for entry-points.
----
---- The path is resolved to be the first non-nil value from:
----  - `python_path`
----  - `vim.g.pytools_default_python_path`
----  - `"python"`
----
---- Defaults to binary on PATH.
----@field python_path string?
-
---- Returns the entry-points of the _current_ python environment.
----
---- The python environment pointed to by `python_path` will be used to fetch the entry-points. This
---- will exactly return **ALL** possible entry-points available in the current environment
----
---- This function will spawn a python subprocess, which, if available, will depend on the project's
---- virtual environment. If this is undesirable, see
---- [aentry_points_ts](lua://entry_points.aentry_points_ts).
----
----@async
----@nodiscard
----@param options EntryPointsImportlibOptions?
----@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
----	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
----	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
----	  if none could be found.
-function M.aentry_points_importlib(options)
-	options = options or {}
-
-	local python_path = options.python_path or pyutils.default_path()
-
-	local result = pyscripts.alist_entry_points_importlib(python_path, { options.group })
-	return result, "Could not find entry_points"
-end
 
 --- An entry-point, as extracted from a project file (`pyproject.toml` or `setup.py`).
 ---
@@ -80,108 +36,91 @@ end
 --- however, assume the above interpretation.
 ---@field value string[]
 
-local SETUP_PY_EP_QUERY = vim.treesitter.query.parse(
-	"python",
-	[[
-	(call
-		function: (_) @function.name (#eq? @function.name "setup")
-		arguments: (argument_list
-			(keyword_argument
-				name: (_) @function.arg (#eq? @function.arg "entry_points")
-				value: (dictionary
-					(pair
-						key: (string
-							(string_content) @entrypoint.group)
-						value: (list
-							(string
-								(string_content) @entrypoint.entry)))))))
-	]]
-)
+---@class EntryPointsImportlibOptions
+--- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
+---
+--- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
+--- details on what an entry-point *group* is.
+---
+--- Defaults to `nil`.
+---@field group string?
+--- Path to the python environment binary, wherein to look for entry-points.
+---
+--- The path is resolved to be the first non-nil value from:
+---  - `python_path`
+---  - `vim.g.pytools_default_python_path`
+---  - `"python"`
+---
+--- Defaults to binary on PATH.
+---@field python_path string?
 
---- Uses treesitter to try discover entrypoints defined by the project.
+--- Returns the entry-points of the _current_ python environment.
 ---
---- If `project_file` points to *setup.py*, it is impossible to guarantee that all (or any)
---- entrypoints will be returned. For accurate results, the entrypoint definitions must be passed
---- inline to the relevant argument of `setuptools.setup`, as shown in the following code snippet:
---- ```python
---- setup(
----    name="mock-setup_py-repo",
----    version="0.1.0",
----    entry_points={
----        "console_scripts": [
----            "ep1=hello:ep1",
----        ],
----    },
---- )
---- ```
---- This function will fail to detect the entrypoints otherwise, for example:
---- ```python
---- my_entry_points = {
----     "console_scripts": [
----         "ep1=hello:ep1",
----     ],
---- }
+--- The python environment pointed to by `python_path` will be used to fetch the entry-points. This
+--- will exactly return **ALL** possible entry-points available in the current environment
 ---
---- setup(
----    name="mock-setup_py-repo",
----    version="0.1.0",
----    entry_points=my_entry_points,
---- )
---- ```
---- will return that no entry-points were found.
----
---- For guaranteed results, see [aentry_points](lua://entry_points.aentry_points_importlib).
+--- This function will spawn a python subprocess, which, if available, will depend on the project's
+--- virtual environment. If this is undesirable, see
+--- [aentry_points](lua://entry_points.aentry_points).
 ---
 ---@async
 ---@nodiscard
----@param project_file string Path to *setup.py* or *pyproject.toml*.
----@param group string? Optional filter.
+---@param options EntryPointsImportlibOptions?
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
-function M.aentry_points_from_project(project_file, group)
-	local file_content, errmsg = async.read_file(project_file)
-	if not file_content then
-		return nil, "Could not read `" .. project_file .. "`. Reason: " .. errmsg
-	end
+function M.aentry_points_importlib(options)
+	options = options or {}
 
-	local parser = vim.treesitter.get_string_parser(file_content, "python")
-	local root = parser:parse()[1]:root()
+	local python_path = options.python_path or pyutils.default_path()
 
-	---@type EntryPointDef[]
-	local result = {}
+	local result = pyscripts.alist_entry_points_importlib(python_path, { options.group })
+	return result, "Could not find entry_points"
+end
 
-	for _, match in SETUP_PY_EP_QUERY:iter_matches(root, file_content) do
-		local result_group = nil
-		local result_entry = nil
-		for id, nodes in pairs(match) do
-			local capture_name = SETUP_PY_EP_QUERY.captures[id]
+---@class EntryPointsFromSetuppyOptions
+--- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
+---
+--- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
+--- details on what an entry-point *group* is.
+---
+--- Defaults to `nil`.
+---@field group string?
+--- Path to a python interpreter binary.
+---
+--- This will be the python binary used to invoke `setup.py`, so that the entrypoints can be
+--- resolved. The environment of the python interpreter should have, available to it, all the
+--- dependencies used in the `setup.py`.
+---
+--- The path is resolved to be the first non-nil value from:
+---  - `python_path`
+---  - `vim.g.pytools_default_python_path`
+---  - `"python"`
+---
+--- Defaults to binary on PATH.
+---@field python_path string?
 
-			if capture_name == "entrypoint.group" then
-				result_group = tsutils.bounding_text(nodes, file_content)
-			elseif capture_name == "entrypoint.entry" then
-				result_entry = tsutils.bounding_text(nodes, file_content)
-			end
-		end
+--- will return that no entry-points were found.
+---
+--- For ALL avaiable entry-points in the environment, see:
+--- [aentry_points](lua://entry_points.aentry_points_importlib).
+---
+---@async
+---@nodiscard
+---@param project_file string Path to *setup.py* or *pyproject.toml*.
+---@param options EntryPointsFromSetuppyOptions? Optional filter.
+---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
+---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
+---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
+---	  if none could be found.
+function M.aentry_points_from_setuppy(project_file, options)
+	options = options or {}
 
-		if group ~= nil and result_group ~= group then
-			result_group = nil
-		end
+	local python_path = options.python_path or pyutils.default_path()
 
-		if result_group ~= nil and result_entry ~= nil then
-			---@type string[]
-			local components = vim.tbl_map(vim.trim, vim.split(result_entry, "=", { plain = true }))
-
-			table.insert(result, {
-				group = result_group,
-				name = components[1],
-				value = vim.tbl_map(vim.trim, vim.split(components[2], ":", { plain = true })),
-			})
-		end
-	end
-
-	return result, nil
+	local result = pyscripts.alist_entry_points_setuppy(python_path, { project_file, options.group })
+	return result, "Could not find entry_points"
 end
 
 ---@async
@@ -193,14 +132,7 @@ local function afind_project_file(search_dir)
 	return project_file, find_err
 end
 
----@class EntryPointsTSOptions
---- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
----
---- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
---- details on what an entry-point *group* is.
----
---- Defaults to `nil`.
----@field group string?
+---@class EntryPointsTSOptions : EntryPointsFromSetuppyOptions
 --- When looking for entry-points, this and every parent directory will be scanned to find either
 --- `pyproject.toml` or `setup.py`. If the search is successful, the entry-points will from therein
 --- be extracted.
@@ -235,7 +167,7 @@ end
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
-function M.aentry_points_ts(options)
+function M.aentry_points(options)
 	options = options or {}
 
 	local search_dir = options.search_dir or vim.fn.getcwd()
@@ -245,7 +177,8 @@ function M.aentry_points_ts(options)
 		return nil, find_err
 	end
 
-	return M.aentry_points_from_project(project_file, options.group)
+	-- For now, only setup.py is supported.
+	return M.aentry_points_from_setuppy(project_file, options)
 end
 
 local ROOT_ATTR_QUERY_STRING = [[
@@ -348,7 +281,7 @@ local MODULE_SEARCH_DIRS = { "src", "" }
 --- In this simple example, a special case could potentially be made to determine that `func` should
 --- be the location of `entry_point`, or perhaps even `setattr`. However, the attribute name
 --- `entry_point` can be hidden behind a virtually infinite level of indirection. Which, to
---- determine, would invitably reproduce the functionality of `importlib`.
+--- determine, would inevitably reproduce the functionality of `importlib`.
 ---
 --- Instead, this function makes a best effort, assuming the entry-point path points to an
 --- explicitely defined module attribute (a top level function, class, variable, or other

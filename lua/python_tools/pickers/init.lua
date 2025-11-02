@@ -15,7 +15,7 @@ local utils = require("python_tools.pickers._utils")
 
 ---@class	EntryPointPickerOptions
 --- Whether to use python's [importlib](https://docs.python.org/3/library/importlib.html) module
---- when determine entrypoints.
+--- when determining entrypoints.
 ---
 --- If `true`, will use:
 --- - [aentry_points_importlib](lua://entry_points.aentry_points_importlib)
@@ -23,7 +23,7 @@ local utils = require("python_tools.pickers._utils")
 --- to evaluate all available entrypoints, and their location in source.
 ---
 --- Otherwise, if `false`:
---- - [aentry_points_ts](lua://entry_points.aentry_points_ts)
+--- - [aentry_points](lua://entry_points.aentry_points)
 --- - [aentry_point_location_ts](lua://entry_points.aentry_point_location_ts)
 --- will be used instead.
 ---
@@ -31,14 +31,17 @@ local utils = require("python_tools.pickers._utils")
 --- results. There are distinct advantages and disadvantages to either choice, a deeper discussion
 --- of which is presented in the docstrings for:
 --- - [aentry_points_importlib](lua://entry_points.aentry_points_importlib)
---- - [aentry_points_ts](lua://entry_points.aentry_points_ts)
+--- - [aentry_points](lua://entry_points.aentry_points)
 ---
 --- Briefly, `use_importlib=true` is more accurate, while the converse is more *flexible*.
 ---
 --- Defaults to `true`.
 ---@field use_importlib boolean?
---- See [EntryPointsImportlibOptions.group](lua://EntryPointsImportlibOptions.group).
---- - [aentry_point_location_ts](lua://entry_points.aentry_point_location_ts)
+--- Filter entrypoints by `group`.
+---
+--- See:
+--- - [EntryPointsImportlibOptions.group](lua://EntryPointsImportlibOptions.group).
+--- - [EntryPointsTSOptions.group](lua://EntryPointsTSOptions.group).
 ---
 --- Defaults to `nil`.
 ---@field group string?
@@ -48,11 +51,15 @@ local utils = require("python_tools.pickers._utils")
 ---
 --- Defaults to `nil`.
 ---@field search_dir string?
---- Only applicable if `use_importlib=true`.
+--- Python binary used when executing python scripts.
+---
+--- *Note*: if `use_importlib=true`, this should be the environment whose entrypoints are of
+--- interest.
 ---
 --- See [EntryPointsImportlibOptions.python_path](lua://EntryPointsImportlibOptions.python_path)
+--- See [EntryPointsTSOptions.python_path](lua://EntryPointsTSOptions.python_path)
 ---
---- Defaults to `nil`.
+--- Defaults to [default_path](lua://utils.default_path).
 ---@field python_path string?
 --- Maximum display width, in the *results* window, for the entry-point group.
 ---
@@ -265,7 +272,7 @@ function M.find_entry_points(opts)
 	if opts.use_importlib then
 		async.run_callback(ep_tools.aentry_points_importlib, on_endpoints, opts)
 	else
-		async.run_callback(ep_tools.aentry_points_ts, on_endpoints, opts)
+		async.run_callback(ep_tools.aentry_points, on_endpoints, opts)
 	end
 end
 

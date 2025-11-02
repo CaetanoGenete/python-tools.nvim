@@ -17,6 +17,7 @@ return {
 
 - [NeoVim](https://github.com/neovim/neovim) 0.11
 - [Telescope](https://github.com/nvim-telescope/telescope.nvim) (Optional)
+- Python >=3.8 (Your milage may vary for earlier versions)
 
 ## Features
 
@@ -48,9 +49,10 @@ require("python_tools.pickers").find_entry_points({
 	--
 	-- Defaults to the current working directory.
 	search_dir = nil,
-	-- Only applicable if `use_importlib=true`.
+	-- Python binary used when executing python scripts.
 	--
-	-- Path to the python environment binary, wherein to look for entry-points.
+	-- *Note*: if `use_importlib=true`, this should be the environment whose entrypoints are of
+	-- interest.
 	--
 	-- The path is resolved to be the first non-nil value from:
 	--  - python_path
@@ -94,7 +96,7 @@ by the project.
 
 > [!NOTE]
 >
-> Here it is preferable to use `aentry_points_ts` to limit the returned entry
+> Here it is preferable to use `aentry_points` to limit the returned entry
 > points to those defined by the project. `aentry_points_importlib` will also
 > list console scripts provided by _setuptools_, _black_, and other libraries.
 
@@ -108,7 +110,7 @@ end
 ---@param dap_coro thread
 local function adebug_entrypoint(dap_coro)
 	local eps, err =
-		require("python_tools.meta.entry_points").aentry_points_ts({ group = "console_scripts" })
+		require("python_tools.meta.entry_points").aentry_points({ group = "console_scripts" })
 
 	if eps == nil then
 		vim.notify(("Failed to find entry_points: %s"):format(err), vim.log.levels.ERROR)
