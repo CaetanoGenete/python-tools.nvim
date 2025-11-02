@@ -5,6 +5,37 @@ local pyscripts = require("python_tools._scripts.python")
 ---@class entry_points
 local M = {}
 
+--- An entry-point, as extracted from a project file (`pyproject.toml` or `setup.py`).
+---
+--- ## pyproject.toml
+--- ```toml
+--- [project.entry-points."<group>"]:
+--- <name> = "<value[1]>:...:<value[n]>"
+--- ```
+--- ## setup.py
+--- ```python
+--- setup(
+--- 	entry_points={
+--- 		"<group>": {
+--- 			"<name> = <value[1]>:...:<value[n]>"
+--- 		}
+--- 	}
+--- )
+--- ```
+---
+---@class EntryPointDef
+--- The name of the entry-point.
+---@field name string
+--- The group the entry-point belongs to.
+---@field group string
+--- Typically, contains as elements:
+--- 1. python module path
+--- 2. module attribute (a dot separated getter to a callable python object)
+---
+--- However, python allows these values to be anything. **All** utilities from this library will,
+--- however, assume the above interpretation.
+---@field value string[]
+
 ---@class EntryPointsImportlibOptions
 --- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
 ---
@@ -47,37 +78,6 @@ function M.aentry_points_importlib(options)
 	local result = pyscripts.alist_entry_points_importlib(python_path, { options.group })
 	return result, "Could not find entry_points"
 end
-
---- An entry-point, as extracted from a project file (`pyproject.toml` or `setup.py`).
----
---- ## pyproject.toml
---- ```toml
---- [project.entry-points."<group>"]:
---- <name> = "<value[1]>:...:<value[n]>"
---- ```
---- ## setup.py
---- ```python
---- setup(
---- 	entry_points={
---- 		"<group>": {
---- 			"<name> = <value[1]>:...:<value[n]>"
---- 		}
---- 	}
---- )
---- ```
----
----@class EntryPointDef
---- The name of the entry-point.
----@field name string
---- The group the entry-point belongs to.
----@field group string
---- Typically, contains as elements:
---- 1. python module path
---- 2. module attribute (a dot separated getter to a callable python object)
----
---- However, python allows these values to be anything. **All** utilities from this library will,
---- however, assume the above interpretation.
----@field value string[]
 
 ---@class EntryPointsFromSetuppyOptions
 --- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
