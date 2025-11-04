@@ -1,6 +1,6 @@
 -- IMPORTANT: this module MUST be at the root of the `/test` directory!
 
----Full path to the `/test` directory.
+--- Full path to the `/test` directory.
 TEST_PATH = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
 
 local M = {}
@@ -26,6 +26,34 @@ end
 
 function M.clear_fixture_cache()
 	fixture_cache = {}
+end
+
+function M.async(it, name, callable)
+	it(name, function()
+		local status = "pending"
+		local err = nil
+
+		require("python_tools._async").run_callback(callable, function(success, result)
+			if not success then
+				err = result
+				status = "error"
+			else
+				status = "complete"
+			end
+		end)
+
+		vim.wait(5000, function()
+			return status ~= "pending"
+		end, 20)
+
+		if status == "pending" then
+			error("Timeout!")
+		end
+
+		if status == "error" then
+			error(err)
+		end
+	end)
 end
 
 return M

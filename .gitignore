@@ -4,4 +4,4 @@ __pycache__
 *.egg-info
 
 # generated files
-.luarc-ci.json
+.luarc.json
