@@ -24,10 +24,26 @@ function M.get_fixture(...)
 	return vim.deepcopy(cached)
 end
 
+local ASYNC_TEST_TIMEOUT_MS = 5000
+local ASYNC_TEST_INTERVAL_MS = 20
+
 function M.clear_fixture_cache()
 	fixture_cache = {}
 end
 
+--- Helper function for writting async tests.
+---
+--- Example usage:
+--- ```lua
+--- async(it, "should test", function()
+---		assert(10 == 11, "That's not quite right...")
+--- end)
+--- ```
+---
+---@generic T
+---@param it fun(name: string, fn: fun()) busted `it` callable.
+---@param name string The name of the test.
+---@param callable fun(): T?
 function M.async(it, name, callable)
 	it(name, function()
 		local status = "pending"
@@ -42,9 +58,9 @@ function M.async(it, name, callable)
 			end
 		end)
 
-		vim.wait(5000, function()
+		vim.wait(ASYNC_TEST_TIMEOUT_MS, function()
 			return status ~= "pending"
-		end, 20)
+		end, ASYNC_TEST_INTERVAL_MS)
 
 		if status == "pending" then
 			error("Timeout!")

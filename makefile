@@ -16,8 +16,11 @@ test: $(TEST-ENVS)
 $(RC_PATH):
 	nvim --headless --clean -l ./scripts/gen-type-cheking-rcfile.lua > $(RC_PATH)
 
+.PHONY: develop
+develop: $(RC_PATH)
+
 .PHONY: type-check
-type-check: $(RC_PATH)
+type-check: develop
 	lua-language-server --check=. --checklevel=Hint --configpath=$(RC_PATH)
 
 .PHONY: check-formatting
