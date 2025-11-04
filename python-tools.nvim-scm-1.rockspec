@@ -1,6 +1,5 @@
 ---@diagnostic disable: lowercase-global
 
-rockspec_format = "3.0"
 package = "python-tools.nvim"
 version = "scm-1"
 source = {
