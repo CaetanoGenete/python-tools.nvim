@@ -2,19 +2,21 @@ SUPPORTED-VERSIONS:=3.8 3.9 3.10 3.11 3.12 3.13
 TEST-ENVS:=$(patsubst %, test-%, $(SUPPORTED-VERSIONS))
 
 MINIMAL_INIT:=./scripts/minimal_init.lua
-RC_PATH:=./.luarc.json
+RC_PATH:=.luarc.json
+BUILD_PATH:=./build
+LIB_PATH:=./lib
 
 $(RC_PATH):
 	nvim --headless --clean -l ./scripts/gen-type-cheking-rcfile.lua > $(RC_PATH)
 
-./build:
+$(BUILD_PATH):
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-./bin:
-	cmake --build build
+$(LIB_PATH):
+	cmake --build build --config release
 
 .PHONY: develop
-develop: $(RC_PATH) ./build ./bin
+develop: $(RC_PATH) $(BUILD_PATH) $(LIB_PATH)
 
 .PHONY: type-check
 type-check: develop
@@ -34,4 +36,3 @@ test: $(TEST-ENVS)
 
 .PHONY: test-dev
 test-dev: type-check check-formatting test-3.12
-
