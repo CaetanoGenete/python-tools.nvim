@@ -5,3 +5,10 @@ __pycache__
 
 # generated files
 .luarc.json
+
+# cxx build dir
+/lib/
+/build/
+
+# clangd cache
+/.cache/

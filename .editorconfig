@@ -1,6 +1,10 @@
 [*]
 trim_trailing_whitespace = true
 
+[*.c]
+indent_style = tab
+indent_size = 2
+
 [{*.lua,.busted,*.rockspec}]
 indent_style = tab
 indent_size = 2
