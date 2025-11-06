@@ -1,13 +1,15 @@
 return {
 	_all = {
 		coverage = false,
+		verbose = true,
+		ROOT = { "./test/" },
 		lpath = "lua/?.lua;lua/?/init.lua;?.lua",
-		cpath = "lib/?.dll;lib/?.so;lib/lib?.so",
+		cpath = "build/install/bin/?.dll;build/install/lib/?.so;build/install/lib?.so",
 		lua = "nvim --headless --noplugin -u ./scripts/minimal_init.lua -l",
 		output = "test.busted.output_handler",
 	},
-	default = {
-		verbose = true,
-		ROOT = { "./test/" },
+	default = {},
+	ci = {
+		output = "TAP",
 	},
 }

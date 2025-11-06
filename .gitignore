@@ -7,8 +7,9 @@ __pycache__
 .luarc.json
 
 # cxx build dir
-/lib/
 /build/
+/build-ts/
+/parser/
 
 # clangd cache
 /.cache/

@@ -251,6 +251,8 @@ local function _aentry_point_location_ts(def, file_path)
 		last_match = math.max(last_match, row + 1)
 	end
 
+	vim.print("Last match: " .. last_match)
+
 	if last_match == -1 then
 		return nil, "Could not find attr!"
 	end
@@ -354,9 +356,14 @@ function M.aentry_point_location_importlib(def, python_path)
 
 	local file_path = pyscripts.afind_entry_point_origin_importlib(python_path, { def.value[1] })
 
+	vim.print("-----------------------------------------------------------")
+
 	local ok, result = pcall(_aentry_point_location_ts, def, file_path)
 	if ok and result ~= nil then
+		vim.print("Result: success")
 		return result, nil
+	else
+		vim.print("Result: Error", result)
 	end
 
 	local ep, errcode = pyscripts.afind_entry_point_importlib(python_path, { def.name, def.group })

@@ -1,0 +1,4 @@
+[submodule "tree-sitter-python"]
+	path = tree-sitter-python
+	url = https://github.com/tree-sitter/tree-sitter-python.git
+	branch = v0.25.0

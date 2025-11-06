@@ -18,9 +18,4 @@ endif()
 add_library(redirect SHARED ./src/redirect.c)
 target_link_libraries(redirect PRIVATE Lua::Lua)
 
-set_target_properties(redirect
-    PROPERTIES
-	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib"
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/lib"
-)
+install(TARGETS redirect)
