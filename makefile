@@ -10,7 +10,7 @@ $(RC_PATH):
 	nvim --headless --clean -l ./scripts/gen-type-cheking-rcfile.lua > $(RC_PATH)
 
 $(BUILD_PATH):
-	cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_FIND_DEBUG_MODE=ON
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_POSITION_INDEPENDENT_CODE=On
 
 $(LIB_PATH):
 	cmake --build build --config release
