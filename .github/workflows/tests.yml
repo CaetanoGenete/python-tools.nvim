@@ -45,6 +45,8 @@ jobs:
           curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim-scm-1.rockspec
 
       - name: Install plugins
+        env:
+          LUA_INCLUDE_DIR: .lua/include/lua.h
         run: |
           luarocks --version
           luarocks install telescope.nvim-scm-1.rockspec
