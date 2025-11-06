@@ -56,7 +56,7 @@ jobs:
 
       - name: Build
         run: |
-          ls .lua
+          ls .lua/lib
           cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_FIND_DEBUG_MODE=ON -DLUA_INCLUDE_DIR=".lua/include" -DLUA_LIBRARIES=".lua/lib"
           cmake --build build --config release
 
