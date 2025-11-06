@@ -46,8 +46,6 @@ jobs:
           curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim-scm-1.rockspec
 
       - name: Install plugins
-        env:
-          CMAKE_PREFIX_PATH: ${{ github.workspace }}/.lua/
         run: |
           luarocks --version
           luarocks install telescope.nvim-scm-1.rockspec
@@ -55,10 +53,13 @@ jobs:
           luarocks install busted
 
       - name: Build
+        env:
+          CMAKE_PREFIX_PATH: ${{ github.workspace }}/.lua/
         run: |
-          ls .lua/lib
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_FIND_DEBUG_MODE=ON -DLUA_INCLUDE_DIR=".lua/include" -DLUA_LIBRARIES=".lua/lib"
-          cmake --build build --config release
+          make develop
+          # ls .lua/lib
+          # cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_FIND_DEBUG_MODE=ON -DLUA_INCLUDE_DIR=".lua/include" -DLUA_LIBRARIES=".lua/lib/liblua.a"
+          # cmake --build build --config release
 
       - name: Run tests
         run: |
