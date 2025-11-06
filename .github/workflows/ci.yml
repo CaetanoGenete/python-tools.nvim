@@ -33,16 +33,9 @@ jobs:
       - uses: leafo/gh-actions-lua@v12
         with:
           luaVersion: "5.1.5"
-          luaCompileFlags: MYCFLAGS="-shared"
 
-      - name: Install luarocks (Unix)
-        if: ${{ matrix.os != 'windows-2022' }}
+      - name: Install luarocks
         uses: leafo/gh-actions-luarocks@v6
-
-      - name: Install luarocks (Windows)
-        if: ${{ matrix.os == 'windows-2022' }}
-        run: |
-          choco install luarocks
 
       - name: Copy telescope rockspec
         run: |
@@ -50,12 +43,10 @@ jobs:
 
       - name: Install plugins
         run: |
-          luarocks --version
           luarocks install telescope.nvim-scm-1.rockspec
           luarocks install --deps-only python-tools.nvim-0.2-0.rockspec
-          luarocks install busted
 
-      - name: Build
+      - name: Build lib
         env:
           CMAKE_PREFIX_PATH: ${{ github.workspace }}/.lua/
         run: |
@@ -64,6 +55,10 @@ jobs:
       - name: Build treesitter grammar python
         run: |
           make compile-parser
+
+      - name: Install busted
+        run: |
+          luarocks install busted
 
       - name: Run tests
         env:
