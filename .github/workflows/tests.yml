@@ -10,7 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022]
+        # os: [ubuntu-22.04, windows-2022]
+        os: [ubuntu-22.04]
         rev: [v0.11.0]
 
     steps:
@@ -46,7 +47,7 @@ jobs:
 
       - name: Install plugins
         env:
-          LUA_INCLUDE_DIR: .lua/include/lua.h
+          CMAKE_PREFIX_PATH: .lua/include/lua.h
         run: |
           luarocks --version
           luarocks install telescope.nvim-scm-1.rockspec
