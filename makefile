@@ -1,3 +1,5 @@
+BUSTED_PROFILE?=default
+
 SUPPORTED-VERSIONS:=3.8 3.9 3.10 3.11 3.12 3.13
 TEST-ENVS:=$(patsubst %, test-%, $(SUPPORTED-VERSIONS))
 
@@ -21,7 +23,6 @@ compile: $(BUILD_PATH)
 	cmake --build $(BUILD_PATH) --config release
 	cmake --install $(BUILD_PATH) --prefix $(INSTALL_PATH)
 
-
 $(PARSER_BUILD_PATH):
 	cmake -S ./tree-sitter-python/ -B $(PARSER_BUILD_PATH) -DCMAKE_BUILD_TYPE=release
 
@@ -34,7 +35,7 @@ compile-parser: $(PARSER_BUILD_PATH)
 develop: $(RC_PATH) compile compile-parser
 
 .PHONY: type-check
-type-check: develop
+type-check: $(RC_PATH)
 	lua-language-server --check=. --checklevel=Hint --configpath=$(RC_PATH)
 
 .PHONY: check-formatting
@@ -44,7 +45,7 @@ check-formatting:
 .PHONY: $(TEST-ENVS)
 $(TEST-ENVS):
 	uv sync -p $(subst test-,,$@) --project ./test/fixtures/mock-repo/
-	@busted
+	busted --run=$(BUSTED_PROFILE)
 
 .PHONY: test
 test: $(TEST-ENVS)

@@ -66,5 +66,7 @@ jobs:
           make compile-parser
 
       - name: Run tests
+        env:
+          BUSTED_PROFILE: ci
         run: |
           make test
