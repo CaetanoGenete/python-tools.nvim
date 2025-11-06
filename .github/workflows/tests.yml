@@ -32,11 +32,11 @@ jobs:
           luaVersion: "5.1.5"
 
       - name: Install luarocks (Unix)
-        if: ${{ matrix.os != windows-2022 }}
+        if: ${{ matrix.os != 'windows-2022' }}
         uses: leafo/gh-actions-luarocks@v6
 
       - name: Install luarocks (Windows)
-        if: ${{ matrix.os == windows-2022 }}
+        if: ${{ matrix.os == 'windows-2022' }}
         run: |
           choco install luarocks
 
