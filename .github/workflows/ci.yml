@@ -56,7 +56,6 @@ jobs:
       - name: Build
         env:
           CMAKE_PREFIX_PATH: ${{ github.workspace }}/.lua/
-          CFLAGS: "-fPIC"
         run: |
           make develop
           # ls .lua/lib
