@@ -12,11 +12,12 @@ $(RC_PATH):
 $(BUILD_PATH):
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-$(LIB_PATH):
+.PHONY: compile
+compile: $(BUILD_PATH)
 	cmake --build build --config release
 
 .PHONY: develop
-develop: $(RC_PATH) $(BUILD_PATH) $(LIB_PATH)
+develop: $(RC_PATH) $(BUILD_PATH)
 
 .PHONY: type-check
 type-check: develop

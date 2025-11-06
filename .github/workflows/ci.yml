@@ -57,10 +57,7 @@ jobs:
         env:
           CMAKE_PREFIX_PATH: ${{ github.workspace }}/.lua/
         run: |
-          make develop
-          # ls .lua/lib
-          # cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_FIND_DEBUG_MODE=ON -DLUA_INCLUDE_DIR=".lua/include" -DLUA_LIBRARIES=".lua/lib/liblua.a"
-          # cmake --build build --config release
+          make compile
 
       - name: Run tests
         run: |
