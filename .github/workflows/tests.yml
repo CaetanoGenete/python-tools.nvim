@@ -8,11 +8,15 @@ jobs:
     name: unit tests
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        os: [ubuntu-22.04, windows-2022]
+        # os: [ubuntu-22.04, windows-2022]
         rev: [v0.11.0]
-
+        include:
+          - os: windows-2022
+            luarocks-install-cmd: choco install luarocks
+          - os: ubuntu-22.04
+            luarocks-install-cmd: sudo apt install -y luarocks
     steps:
       - uses: actions/checkout@v4
 
@@ -31,7 +35,9 @@ jobs:
         with:
           luaVersion: "5.1.5"
 
-      - uses: leafo/gh-actions-luarocks@v6
+      - name: Install luarocks
+        run: |
+          ${{ matrix.luarocks-install-cmd }}
 
       - name: Install plugins
         run: |
