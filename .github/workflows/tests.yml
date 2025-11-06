@@ -8,15 +8,11 @@ jobs:
     name: unit tests
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        # os: [ubuntu-22.04, windows-2022]
+        os: [ubuntu-22.04, windows-2022]
         rev: [v0.11.0]
-        include:
-          - os: windows-2022
-            luarocks-install-cmd: choco install luarocks
-          - os: ubuntu-22.04
-            luarocks-install-cmd: sudo apt install -y luarocks
+
     steps:
       - uses: actions/checkout@v4
 
@@ -35,13 +31,23 @@ jobs:
         with:
           luaVersion: "5.1.5"
 
-      - name: Install luarocks
+      - name: Install luarocks (Unix)
+        if: ${{ matrix.os != windows-2022 }}
+        uses: leafo/gh-actions-luarocks@v6
+
+      - name: Install luarocks (Windows)
+        if: ${{ matrix.os == windows-2022 }}
         run: |
-          ${{ matrix.luarocks-install-cmd }}
+          choco install luarocks
+
+      - name: Copy telescope rockspec
+        run: |
+          curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim.rockspec
 
       - name: Install plugins
         run: |
           luarocks --version
+          luarocks install telescope.nvim.rockspec
           luarocks install --deps-only python-tools.nvim-0.2-0.rockspec
           luarocks install busted
 
