@@ -6,19 +6,21 @@ project(python_tools C)
 find_package(Lua 5.1 REQUIRED)
 if(NOT TARGET Lua::Lua)
 	add_library(Lua::Lua INTERFACE IMPORTED)
-	set_target_properties(
-		Lua::Lua
-		PROPERTIES
-		  INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
-	)
+	target_include_directories(Lua::Lua INTERFACE "${LUA_INCLUDE_DIR}")
+
+	# On unix systems, the linker can resolve symbols at runtime, so there's no
+	# need to link against `.a` files.
+	if(${WIN32})
+		target_link_libraries(Lua::Lua INTERFACE "${LUA_LIBRARY}")
+	endif()
 endif()
-# target_compile_definitions(Lua::Lua INTERFACE LUA_BUILD_AS_DLL)
 
 add_library(redirect SHARED ./src/redirect.c)
 target_link_libraries(redirect PRIVATE Lua::Lua)
 
 set_target_properties(redirect
     PROPERTIES
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/lib"
 )
