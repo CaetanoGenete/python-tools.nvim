@@ -31,7 +31,7 @@ jobs:
       - uses: leafo/gh-actions-lua@v12
         with:
           luaVersion: "5.1.5"
-          luaCompileFlags: LUA_CFLAGS="-shared"
+          luaCompileFlags: MYCFLAGS="-shared"
 
       - name: Install luarocks (Unix)
         if: ${{ matrix.os != 'windows-2022' }}
