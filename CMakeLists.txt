@@ -19,5 +19,6 @@ target_link_libraries(redirect PRIVATE Lua::Lua)
 
 set_target_properties(redirect
     PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/lib"
 )
