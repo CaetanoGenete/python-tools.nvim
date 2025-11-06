@@ -42,12 +42,12 @@ jobs:
 
       - name: Copy telescope rockspec
         run: |
-          curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim.rockspec
+          curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim-scm-1.rockspec
 
       - name: Install plugins
         run: |
           luarocks --version
-          luarocks install telescope.nvim.rockspec
+          luarocks install telescope.nvim-scm-1.rockspec
           luarocks install --deps-only python-tools.nvim-0.2-0.rockspec
           luarocks install busted
 
