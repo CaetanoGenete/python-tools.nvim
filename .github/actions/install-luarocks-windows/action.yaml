@@ -14,8 +14,8 @@ runs:
   using: composite
   env:
     LUAROCKS_SRC_DIR: ../luarocks
-    LUAROCKS_INSTALL_DIR: ${{ github.workspace }}/${{ inputs.installPath }}
-    LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
+    LUAROCKS_INSTALL_DIR: ${{ env.GITHUB_WORKSPACE }}/${{ inputs.installPath }}
+    LUA_DIR: ${{ env.GITHUB_WORKSPACE }}/${{ inputs.luaPath }}
   steps:
     - name: Checkout luarocks
       uses: actions/checkout@v4
