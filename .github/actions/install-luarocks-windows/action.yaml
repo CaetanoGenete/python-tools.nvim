@@ -14,8 +14,6 @@ runs:
   using: composite
   env:
     LUAROCKS_SRC_DIR: ../luarocks
-    LUAROCKS_INSTALL_DIR: ${{ env.GITHUB_WORKSPACE }}/${{ inputs.installPath }}
-    LUA_DIR: ${{ env.GITHUB_WORKSPACE }}/${{ inputs.luaPath }}
   steps:
     - name: Checkout luarocks
       uses: actions/checkout@v4
@@ -26,12 +24,16 @@ runs:
 
     - name: Compile luarocks
       shell: pwsh
+      env:
+        LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
       working-directory: ${{ env.LUAROCKS_SRC_DIR }}
       run: |
         install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
 
     - name: Set env
       shell: pwsh
+      env:
+        LUAROCKS_INSTALL_DIR: ${{ github.workspace }}/${{ inputs.installPath }}
       run: |
         echo "${Env:LUAROCKS_INSTALL_DIR}" >> ${Env:GITHUB_PATH}
         echo "LUA_CPATH=${Env:LUA_CPATH};${Env:LUAROCKS_INSTALL_DIR}/systree/lib/lua5.1/?.dll" >> ${Env:GITHUB_ENV}
