@@ -15,36 +15,12 @@ jobs:
         rev: [v0.11.0]
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
+      - uses: ./.github/actions/prepare-env
 
       - name: Install UV
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-
-      - uses: rhysd/action-setup-vim@v1
-        with:
-          neovim: true
-          version: ${{ matrix.rev }}
-
-      - uses: ilammy/msvc-dev-cmd@v1
-      - uses: leafo/gh-actions-lua@v12
-        with:
-          luaVersion: "5.1.5"
-
-      - name: Install luarocks
-        uses: leafo/gh-actions-luarocks@v6
-
-      - name: Copy telescope rockspec
-        run: |
-          curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim-scm-1.rockspec
-
-      - name: Install plugins
-        run: |
-          luarocks install telescope.nvim-scm-1.rockspec
-          luarocks install --deps-only python-tools.nvim-0.2-0.rockspec
 
       - name: Build lib
         env:
@@ -56,12 +32,58 @@ jobs:
         run: |
           make compile-parser
 
-      - name: Install busted
-        run: |
-          luarocks install busted
-
       - name: Run tests
         env:
           BUSTED_PROFILE: ci
         run: |
           make test
+
+      # - uses: actions/checkout@v4
+      #   with:
+      #     submodules: true
+      #
+      # - name: Install UV
+      #   uses: astral-sh/setup-uv@v6
+      #   with:
+      #     enable-cache: true
+      #
+      # - uses: rhysd/action-setup-vim@v1
+      #   with:
+      #     neovim: true
+      #     version: ${{ matrix.rev }}
+      #
+      # - uses: ilammy/msvc-dev-cmd@v1
+      # - uses: leafo/gh-actions-lua@v12
+      #   with:
+      #     luaVersion: "5.1.5"
+      #
+      # - name: Install luarocks
+      #   uses: leafo/gh-actions-luarocks@v6
+      #
+      # - name: Copy telescope rockspec
+      #   run: |
+      #     curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim-scm-1.rockspec
+      #
+      # - name: Install dependencies
+      #   run: |
+      #     luarocks install telescope.nvim-scm-1.rockspec
+      #
+      # - name: Build lib
+      #   env:
+      #     CMAKE_PREFIX_PATH: ${{ github.workspace }}/.lua/
+      #   run: |
+      #     make compile
+      #
+      # - name: Build treesitter grammar python
+      #   run: |
+      #     make compile-parser
+      #
+      # - name: Prepare tests
+      #   run: |
+      #     luarocks test --prepare
+      #
+      # - name: Run tests
+      #   env:
+      #     BUSTED_PROFILE: ci
+      #   run: |
+      #     make test

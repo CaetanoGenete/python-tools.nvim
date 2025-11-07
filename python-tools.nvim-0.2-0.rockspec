@@ -1,5 +1,6 @@
 ---@diagnostic disable: lowercase-global
 
+rockspec_format = "3.0"
 package = "python-tools.nvim"
 version = "0.2-0"
 source = {
@@ -7,6 +8,8 @@ source = {
 }
 dependencies = {
 	"lua>=5.1",
+}
+test_dependencies = {
 	"telescope.nvim",
 }
 build = {

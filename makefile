@@ -12,9 +12,6 @@ INSTALL_PATH:=$(BUILD_PATH)/install
 PARSER_BUILD_PATH:=./build-ts
 PARSER_INSTALL_PATH:=$(PARSER_BUILD_PATH)/install
 
-$(RC_PATH):
-	nvim --headless --clean -l ./scripts/gen-type-cheking-rcfile.lua > $(RC_PATH)
-
 $(BUILD_PATH):
 	cmake -S . -B $(BUILD_PATH) -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
@@ -31,11 +28,14 @@ compile-parser: $(PARSER_BUILD_PATH)
 	cmake --build $(PARSER_BUILD_PATH) --config release
 	cmake --install $(PARSER_BUILD_PATH) --prefix $(PARSER_INSTALL_PATH)
 
+$(RC_PATH):
+	nvim --headless --clean -l ./scripts/gen-type-cheking-rcfile.lua > $(RC_PATH)
+
 .PHONY: develop
 develop: $(RC_PATH) compile compile-parser
 
-.PHONY: type-check
-type-check: $(RC_PATH)
+.PHONY: check-types
+check-types: $(RC_PATH)
 	lua-language-server --check=. --checklevel=Hint --configpath=$(RC_PATH)
 
 .PHONY: check-formatting
@@ -51,4 +51,4 @@ $(TEST-ENVS):
 test: $(TEST-ENVS)
 
 .PHONY: test-dev
-test-dev: type-check check-formatting test-3.12
+test-dev: check-types check-formatting test-3.12

@@ -1,0 +1,28 @@
+name: "Prepare environment"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - uses: rhysd/action-setup-vim@v1
+      with:
+        neovim: true
+        version: ${{ matrix.rev }}
+
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: leafo/gh-actions-lua@v12
+      with:
+        luaVersion: "5.1.5"
+
+    - name: Install luarocks
+      uses: leafo/gh-actions-luarocks@v6
+
+    - name: Install dependencies
+      run: |
+        luarocks install telescope.nvim-scm-1.rockspec
+
+    - name: Prepare tests
+      run: |
+        luarocks test --prepare
