@@ -33,8 +33,7 @@ runs:
     - name: Download telescope rockspec
       shell: ${{ env.SHELL }}
       run: |
-        curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec \
-          -o telescope.nvim-scm-1.rockspec
+        curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim-scm-1.rockspec
 
     - name: Install dependencies
       shell: ${{ env.SHELL }}
