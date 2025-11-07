@@ -27,24 +27,35 @@ runs:
         LUAROCKS_INSTALL_DIR: ${{ github.workspace }}/${{ inputs.installPath }}
       working-directory: ../luarocks
       run: |
-        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR} | Tee-Object -FilePath ./install-out.txt
+        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
 
-    - name: Check paths
+    - name: Set paths
       shell: pwsh
-      run: ./.luarocks/luarocks.bat path
-
-    - name: Set env
-      shell: pwsh
+      working-directory: ${{ inputs.installPath }}
       run: |
-        foreach ($var in @("PATH", "LUA_PATH", "LUA_CPATH")) {
-          $value = ((cat "../luarocks/install-out.txt" | Select-String -Pattern "^\s*$var\s*:\s*(.+)$").Matches | ForEach-Object {
-            $_.Groups[1].Value.Trim()
-          }) -join ';';
-          Set-Variable -Name "$var" -Value "$value"
-        };
-        echo "${PATH}" >> ${Env:GITHUB_PATH};
-        echo "LUA_CPATH=${LUA_CPATH};${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
-        echo "LUA_PATH=${LUA_PATH};${Env:LUA_PATH}" >> ${Env:GITHUB_ENV};
+        ./luarocks.bat path > "paths_lrp.bat"
+        ./paths_lrp.bat && rm ./paths_lrp.bat
+
+        echo "LUA_PATH=${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
+        echo "LUA_CPATH=${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
+        echo "PATH=${Env:PATH}" >> ${Env:GITHUB_ENV};
+
+    # - name: Check paths
+    #   shell: pwsh
+    #   run: ./.luarocks/luarocks.bat path
+    #
+    # - name: Set env
+    #   shell: pwsh
+    #   run: |
+    #     foreach ($var in @("PATH", "LUA_PATH", "LUA_CPATH")) {
+    #       $value = ((cat "../luarocks/install-out.txt" | Select-String -Pattern "^\s*$var\s*:\s*(.+)$").Matches | ForEach-Object {
+    #         $_.Groups[1].Value.Trim()
+    #       }) -join ';';
+    #       Set-Variable -Name "$var" -Value "$value"
+    #     };
+    #     echo "${PATH}" >> ${Env:GITHUB_PATH};
+    #     echo "LUA_CPATH=${LUA_CPATH};${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
+    #     echo "LUA_PATH=${LUA_PATH};${Env:LUA_PATH}" >> ${Env:GITHUB_ENV};
 
     - name: Check install
       shell: pwsh
