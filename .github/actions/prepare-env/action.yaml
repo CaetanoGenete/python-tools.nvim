@@ -39,12 +39,12 @@ runs:
       shell: ${{ env.SHELL }}
       run: luarocks install telescope.nvim-scm-1.rockspec
 
-    - name: Install tree-sitter-cli
-      if: runner.os == 'Windows'
-      shell: ${{ env.SHELL }}
-      run: choco install tree-sitter
+    - uses: actions-rs/cargo@v1
+      with:
+        command: install
+        args: tree-sitter-cli
 
-      # Note: This is required for `luarocks test --prepare` to succeed.
+    # Note: This is required for `luarocks test --prepare` to succeed.
     - name: Build treesitter grammar python
       shell: ${{ env.SHELL }}
       run: make compile-parser
