@@ -10,8 +10,6 @@ inputs:
     description: Workspace relative path to to install luarocks
     required: true
     default: ./.luarocks
-env:
-  LUAROCKS_SRC_DIR: ../luarocks
 runs:
   using: composite
   steps:
@@ -20,13 +18,13 @@ runs:
       with:
         repository: https://github.com/luarocks/luarocks.git
         ref: v${{ inputs.luarocksVersion }}
-        path: ${{ env.LUAROCKS_SRC_DIR }}
+        path: ../luarocks
 
     - name: Compile luarocks
       shell: pwsh
       env:
         LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
-      working-directory: ${{ env.LUAROCKS_SRC_DIR }}
+      working-directory: ../luarocks
       run: |
         install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
 
