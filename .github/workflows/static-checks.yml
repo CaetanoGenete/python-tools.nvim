@@ -1,6 +1,4 @@
-name: Static checks
-env:
-  TEST_PLUGIN_PATH: "../nvim-plugins/"
+name: Lint
 
 on:
   pull_request:
@@ -15,11 +13,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: rhysd/action-setup-vim@v1
-        with:
-          neovim: true
-          version: v0.11.0
+      - uses: .github/actions/prepare-env
 
       - name: Set up Homebrew
         id: set-up-homebrew
@@ -28,6 +22,7 @@ jobs:
       - name: Install Lua language server
         run: |
           brew install lua-language-server
+          lua-language-server --version
 
       - name: Check formatting
         uses: JohnnyMorganz/stylua-action@v4
@@ -36,20 +31,5 @@ jobs:
           version: v2.3.0
           args: --check .
 
-      - uses: ilammy/msvc-dev-cmd@v1
-      - uses: leafo/gh-actions-lua@v12
-        with:
-          luaVersion: "5.1.5"
-
-      - uses: leafo/gh-actions-luarocks@v6
-
-      - name: Install plugins
-        run: |
-          luarocks --version
-          luarocks install --deps-only --force python-tools.nvim-0.2-0.rockspec
-
       - name: Check types
-        run: |
-          echo "Checking types in: $(pwd)"
-          lua-language-server --version
-          make type-check
+        run: make check-types
