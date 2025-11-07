@@ -41,5 +41,4 @@ runs:
 
     - name: Check install
       shell: pwsh
-      run: |
-        luarocks --version
+      run: luarocks --version

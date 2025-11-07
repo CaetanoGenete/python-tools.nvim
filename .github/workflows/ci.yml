@@ -11,8 +11,8 @@ jobs:
       fail-fast: false
       matrix:
         # os: [ubuntu-22.04, windows-2022]
-        # os: [ubuntu-22.04]
-        os: [windows-2022]
+        os: [ubuntu-22.04]
+        # os: [windows-2022]
         rev: [v0.11.0]
 
     steps:
