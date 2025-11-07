@@ -32,8 +32,7 @@ runs:
         LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
       working-directory: ../luarocks
       run: |
-        dir
-        install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
+        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
 
     # - name: Set env
     #   shell: pwsh
