@@ -41,6 +41,7 @@ runs:
 
     - name: Install tree-sitter
       if: runner.os == 'Windows'
+      shell: ${{ env.SHELL }}
       run: npm install tree-sitter-cli
 
     # Note: This is required for `luarocks test --prepare` to succeed.
@@ -51,3 +52,7 @@ runs:
     - name: Prepare tests
       shell: ${{ env.SHELL }}
       run: luarocks test --prepare
+
+    - name: Check busted on path
+      shell: ${{ env.SHELL }}
+      run: busted --version
