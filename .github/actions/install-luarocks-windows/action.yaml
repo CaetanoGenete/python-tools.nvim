@@ -33,7 +33,7 @@ runs:
       shell: cmd
       working-directory: ${{ inputs.installPath }}
       run: |
-        echo %GITHUB_ENV%
+        echo TEST=10 >> %GITHUB_ENV%
 
     # run: >
     #   luarocks path > %temp%\_lrp.bat && call %temp%\_lrp.bat && del
