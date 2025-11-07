@@ -31,7 +31,7 @@ runs:
 
     - name: Set env
       shell: pwsh
-      run: >
+      run: |
         foreach ($var in @("PATH", "LUA_PATH", "LUA_CPATH")) {
           $value = ((cat "../luarocks/install-out.txt" | Select-String -Pattern "^\s*$var\s*:\s*(.+)$").Matches | ForEach-Object {
             $_.Groups[1].Value.Trim()
@@ -41,16 +41,6 @@ runs:
         echo "${PATH}" >> ${Env:GITHUB_PATH};
         echo "LUA_CPATH=${LUA_CPATH};${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
         echo "LUA_PATH=${LUA_PATH};${Env:LUA_PATH}" >> ${Env:GITHUB_ENV};
-
-    # - name: Set env
-    #   shell: pwsh
-    #   env:
-    #     LUAROCKS_INSTALL_DIR: ${{ github.workspace }}/${{ inputs.installPath }}
-    #   run: |
-    #     echo "${Env:LUAROCKS_INSTALL_DIR}" >> ${Env:GITHUB_PATH}
-    #     echo "${Env:LUAROCKS_INSTALL_DIR}/systree/bin" >> ${Env:GITHUB_PATH}
-    #     echo "LUA_CPATH=${Env:LUAROCKS_INSTALL_DIR}/systree/lib/lua/5.1/?.dll;${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV}
-    #     echo "LUA_PATH=${Env:LUAROCKS_INSTALL_DIR}/lua/?.lua;${Env:LUAROCKS_INSTALL_DIR}/lua/?/init.lua;${Env:LUAROCKS_INSTALL_DIR}/systree/share/lua/5.1/?.lua;${Env:LUAROCKS_INSTALL_DIR}/systree/share/lua/5.1/?/init.lua;${Env:LUA_PATH}" >> ${Env:GITHUB_ENV}
 
     - name: Check install
       shell: pwsh
