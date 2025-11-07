@@ -1,0 +1,22 @@
+name: "Install luarocks"
+inputs:
+  version:
+    description: Luarocks version
+    required: false
+    default: 3.12.2
+runs:
+  using: composite
+  steps:
+    - name: Install Unix
+      if: runner.os != 'Windows'
+      uses: leafo/gh-actions-luarocks@v6
+      with:
+        luarocksVersion: ${{ inputs.version }}
+
+    - name: Install Windows
+      if: runner.os == 'Windows'
+      uses: ./.github/actions/install-luarocks-windows
+      with:
+        luarocksVersion: ${{ inputs.version }}
+        luaPath: ./.lua
+        installPath: ./.luarocks

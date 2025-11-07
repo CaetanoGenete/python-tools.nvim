@@ -1,0 +1,43 @@
+name: "Install luarocks"
+inputs:
+  luarocksVersion:
+    description: Luarocks version
+    required: true
+  luaPath:
+    description: Workspace relative path to Lua library
+    required: true
+  installPath:
+    description: Workspace relative path to to install luarocks
+    required: true
+    default: ./.luarocks
+runs:
+  using: composite
+  env:
+    LUAROCKS_SRC_DIR: ../luarocks
+    LUAROCKS_INSTALL_DIR: ${{ github.workspace }}/${{ inputs.installPath }}
+    LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
+  steps:
+    - name: Checkout luarocks
+      uses: actions/checkout@v4
+      with:
+        repository: https://github.com/luarocks/luarocks.git
+        ref: v${{ inputs.luarocksVersion }}
+        path: ${{ env.LUAROCKS_SRC_DIR }}
+
+    - name: Compile luarocks
+      shell: pwsh
+      working-directory: ${{ env.LUAROCKS_SRC_DIR }}
+      run: |
+        install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
+
+    - name: Set env
+      shell: pwsh
+      run: |
+        echo "${Env:LUAROCKS_INSTALL_DIR}" >> ${Env:GITHUB_PATH}
+        echo "LUA_CPATH=${Env:LUA_CPATH};${Env:LUAROCKS_INSTALL_DIR}/systree/lib/lua5.1/?.dll" >> ${Env:GITHUB_ENV}
+        echo "LUA_PATH=${Env:LUA_PATH};\
+          ${Env:LUAROCKS_INSTALL_DIR}/lua/?.lua;\
+          ${Env:LUAROCKS_INSTALL_DIR}/lua/?/init.lua;\
+          ${Env:LUAROCKS_INSTALL_DIR}/systree/share/lua/5.1/?.lua;\
+          ${Env:LUAROCKS_INSTALL_DIR}/systree/share/lua/5.1/?/init.lua"\
+        >> ${Env:GITHUB_ENV}

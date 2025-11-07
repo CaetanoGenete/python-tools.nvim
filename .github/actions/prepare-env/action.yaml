@@ -24,10 +24,11 @@ runs:
     - name: Setup Windows shell
       if: runner.os == 'Windows'
       shell: pwsh
-      run: echo "SHELL=pwsh" >> "$GITHUB_ENV"
+      run: echo "SHELL=pwsh" >> "${Env:GITHUB_ENV}"
 
     - name: Install luarocks
-      uses: leafo/gh-actions-luarocks@v6
+      uses: ./.github/actions/install-luarocks
+      # uses: leafo/gh-actions-luarocks@v6
 
     - name: Download telescope rockspec
       shell: ${{ env.SHELL }}
