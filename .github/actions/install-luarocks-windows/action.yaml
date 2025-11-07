@@ -18,7 +18,7 @@ runs:
       env:
         LUAROCKS_TAG: v${{ inputs.luarocksVersion }}
       run: |
-        git clone --depth 1 --branch ${Env:LUAROCKS_TAG} https://github.com/luarocks/luarocks.git ../luarocks
+        git clone --depth 1 --branch ${Env:LUAROCKS_TAG} https://github.com/luarocks/luarocks.git ../luarocks/
 
       # uses: actions/checkout@v4
       # with:
@@ -32,6 +32,7 @@ runs:
         LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
       working-directory: ../luarocks
       run: |
+        dir
         install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
 
     # - name: Set env
