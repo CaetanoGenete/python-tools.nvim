@@ -39,6 +39,10 @@ runs:
       shell: ${{ env.SHELL }}
       run: luarocks install telescope.nvim-scm-1.rockspec
 
+      # Note: This is required for `luarocks test --prepare` to succeed.
+    - name: Build treesitter grammar python
+      run: make compile-parser
+
     - name: Prepare tests
       shell: ${{ env.SHELL }}
       run: luarocks test --prepare

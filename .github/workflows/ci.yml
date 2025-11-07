@@ -34,9 +34,6 @@ jobs:
           CMAKE_PREFIX_PATH: .lua/
         run: make compile
 
-      - name: Build treesitter grammar python
-        run: make compile-parser
-
       - name: Run tests
         env:
           BUSTED_PROFILE: ci
