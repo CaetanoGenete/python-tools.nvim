@@ -19,7 +19,7 @@ jobs:
         with:
           submodules: true
 
-      - uses: .github/actions/prepare-env
+      - uses: ./.github/actions/prepare-env
 
       - name: Install UV
         uses: astral-sh/setup-uv@v6
