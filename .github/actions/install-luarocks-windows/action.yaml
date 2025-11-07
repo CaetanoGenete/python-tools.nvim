@@ -36,9 +36,9 @@ runs:
         call luarocks.bat path > setenv.bat
         call setenv.bat
 
-        echo LUA_CPATH=%LUA_CPATH%
-        echo LUA_PATH=%LUA_PATH%
-        echo PATH=%PATH%
+        echo LUA_CPATH=%LUA_CPATH% >> %GITHUB_ENV%
+        echo LUA_PATH=%LUA_PATH% >> %GITHUB_ENV%
+        echo PATH=%PATH% >> %GITHUB_ENV%
 
     # run: >
     #   luarocks path > %temp%\_lrp.bat && call %temp%\_lrp.bat && del
