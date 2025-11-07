@@ -32,6 +32,14 @@ jobs:
           CMAKE_PREFIX_PATH: .lua/
         run: make compile
 
+      - name: Install tree-sitter
+        if: runner.os == 'Windows'
+        run: choco install tree-sitter --version 0.25.2
+
+      # Note: This is required for `luarocks test --prepare` to succeed.
+      - name: Build treesitter grammar python
+        run: make compile-parser
+
       - name: Run tests
         env:
           BUSTED_PROFILE: ci
