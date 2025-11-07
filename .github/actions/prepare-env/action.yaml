@@ -41,6 +41,7 @@ runs:
 
       # Note: This is required for `luarocks test --prepare` to succeed.
     - name: Build treesitter grammar python
+      shell: ${{ env.SHELL }}
       run: make compile-parser
 
     - name: Prepare tests
