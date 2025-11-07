@@ -30,15 +30,15 @@ runs:
         ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
 
     - name: Set paths
-      shell: pwsh
+      shell: cmd
       working-directory: ${{ inputs.installPath }}
       run: |
-        ./luarocks.bat path > "paths_lrp.bat"
-        ./paths_lrp.bat && rm ./paths_lrp.bat
+        luarocks path > "%temp%\_lrp.bat"
+        call "%temp%\_lrp.bat" && del "%temp%\_lrp.bat"
 
-        echo "LUA_PATH=${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
-        echo "LUA_CPATH=${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
-        echo "PATH=${Env:PATH}" >> ${Env:GITHUB_ENV};
+        echo LUA_PATH=%LUA_PATH% >> %GITHUB_ENV%
+        echo LUA_CPATH=%LUA_CPATH% >> %GITHUB_ENV%
+        echo PATH=%PATH% >> %GITHUB_ENV%
 
     # - name: Check paths
     #   shell: pwsh
