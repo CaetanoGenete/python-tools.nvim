@@ -33,7 +33,7 @@ runs:
       shell: cmd
       working-directory: ${{ inputs.installPath }}
       run: |
-        call luarocks.bat > setenv.bat
+        call luarocks.bat path > setenv.bat
         call setenv.bat
 
         echo LUA_CPATH=%LUA_CPATH%
