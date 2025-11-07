@@ -28,7 +28,7 @@ jobs:
 
       - name: Build lib
         env:
-          CMAKE_PREFIX_PATH: ${{ github.workspace }}/.lua/
+          CMAKE_PREFIX_PATH: .lua/
         run: make compile
 
       - name: Build treesitter grammar python
