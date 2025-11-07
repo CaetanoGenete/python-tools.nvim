@@ -42,7 +42,7 @@ runs:
     - name: Install tree-sitter
       if: runner.os == 'Windows'
       shell: ${{ env.SHELL }}
-      run: npm install tree-sitter-cli
+      run: choco install tree-sitter --version 0.25.2
 
     # Note: This is required for `luarocks test --prepare` to succeed.
     - name: Build treesitter grammar python
