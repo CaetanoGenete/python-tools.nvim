@@ -49,4 +49,4 @@ runs:
       run: |
         luarocks --version
         luarocks install luafilesystem
-        echo 'require("lfd")' | lua
+        echo 'require("lfs")' | lua
