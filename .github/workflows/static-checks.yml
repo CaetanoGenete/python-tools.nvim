@@ -5,18 +5,21 @@ on:
     branches:
       - master
 jobs:
-  unit_tests:
-    name: lua-language-server check
+  lint:
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-
     steps:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/prepare-env
         with:
           nvim-rev: v0.11.0
+
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v2.3.0
+          args: --check .
 
       - name: Set up Homebrew
         id: set-up-homebrew
@@ -26,13 +29,6 @@ jobs:
         run: |
           brew install lua-language-server
           lua-language-server --version
-
-      - name: Check formatting
-        uses: JohnnyMorganz/stylua-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: v2.3.0
-          args: --check .
 
       - name: Check types
         run: make check-types

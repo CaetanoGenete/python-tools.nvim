@@ -17,8 +17,9 @@ runs:
       id: cache-luarocks
       uses: actions/cache@v4
       with:
+        key: |
+          ${{ runner.os }}-luarocks
         path: ${{ inputs.installPath }}
-        key: ${{ runner.os }}-${{ inputs.installPath }}
 
     - name: Download luarocks
       if: steps.cache-luarocks.outputs.cache-hit != 'true'
