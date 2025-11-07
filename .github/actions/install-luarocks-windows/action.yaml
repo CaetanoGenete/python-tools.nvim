@@ -51,5 +51,5 @@ runs:
       run: |
         luarocks --version
         luarocks install luafilesystem
-        tree ${Env:LUAROCKS_INSTALL_DIR}
+        tree ${Env:LUAROCKS_INSTALL_DIR} /F /A
         echo 'require("lfs")' | lua
