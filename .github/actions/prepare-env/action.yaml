@@ -25,6 +25,12 @@ runs:
     - name: Install luarocks
       uses: leafo/gh-actions-luarocks@v6
 
+    - name: Download telescope rockspec
+      shell: ${{ env.SHELL }}
+      run: |
+        curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec \
+          -o telescope.nvim-scm-1.rockspec
+
     - name: Install dependencies
       shell: ${{ env.SHELL }}
       run: luarocks install telescope.nvim-scm-1.rockspec
