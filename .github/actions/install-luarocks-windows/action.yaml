@@ -7,13 +7,21 @@ inputs:
     description: Workspace relative path to Lua library
     required: true
   installPath:
-    description: Workspace relative path to to install luarocks
+    description: Workspace relative path wherein to install luarocks
     required: true
     default: ./.luarocks
 runs:
   using: composite
   steps:
+    - name: Cache luarocks
+      id: cache-luarocks
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.installPath }}
+        key: ${{ runner.os }}-${{ inputs.installPath }}
+
     - name: Download luarocks
+      if: steps.cache-luarocks.outputs.cache-hit != 'true'
       shell: pwsh
       env:
         LUAROCKS_TAG: v${{ inputs.luarocksVersion }}
@@ -21,6 +29,7 @@ runs:
         git clone --depth 1 --branch ${Env:LUAROCKS_TAG} https://github.com/luarocks/luarocks.git ../luarocks/
 
     - name: Compile luarocks
+      if: steps.cache-luarocks.outputs.cache-hit != 'true'
       shell: pwsh
       env:
         LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
