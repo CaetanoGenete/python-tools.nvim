@@ -34,6 +34,7 @@ runs:
       working-directory: ${{ inputs.installPath }}
       run: |
         echo TEST=10 >> %GITHUB_ENV%
+        echo OTHER=FOO >> %GITHUB_ENV%
 
     # run: >
     #   luarocks path > %temp%\_lrp.bat && call %temp%\_lrp.bat && del
