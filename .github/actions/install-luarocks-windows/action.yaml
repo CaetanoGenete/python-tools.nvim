@@ -14,7 +14,6 @@ runs:
   using: composite
   steps:
     - name: Download luarocks
-      shell: pwsh
       env:
         LUAROCKS_TAG: v${{ inputs.luarocksVersion }}
       run: |
@@ -28,6 +27,10 @@ runs:
       working-directory: ../luarocks
       run: |
         ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR} | Tee-Object -FilePath ./install-out.txt
+
+    - name: Check paths
+      shell: pwsh
+      run: ./.luarocks/luarocks.bat path
 
     - name: Set env
       shell: pwsh
@@ -45,3 +48,7 @@ runs:
     - name: Check install
       shell: pwsh
       run: luarocks --version
+
+    - name: Cleanup
+      shell: pwsh
+      run: rm -r ../luarocks
