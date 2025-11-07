@@ -46,4 +46,7 @@ runs:
 
     - name: Check install
       shell: pwsh
-      run: luarocks --version
+      run: |
+        luarocks --version
+        luarocks install luafilesystem
+        echo 'require("lfd")' | lua
