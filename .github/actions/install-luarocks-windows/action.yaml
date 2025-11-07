@@ -46,7 +46,10 @@ runs:
 
     - name: Check install
       shell: pwsh
+      env:
+        LUAROCKS_INSTALL_DIR: ${{ github.workspace }}/${{ inputs.installPath }}
       run: |
         luarocks --version
         luarocks install luafilesystem
+        tree ${Env:LUAROCKS_INSTALL_DIR}
         echo 'require("lfs")' | lua
