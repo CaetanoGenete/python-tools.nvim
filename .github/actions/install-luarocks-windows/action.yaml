@@ -32,10 +32,14 @@ runs:
     - name: Set paths
       shell: cmd
       working-directory: ${{ inputs.installPath }}
-      run: >
-        luarocks path > %temp%\_lrp.bat & call %temp%\_lrp.bat & del
-        %temp%\_lrp.bat & echo LUA_PATH=%LUA_PATH% >> %GITHUB_ENV% & echo
-        LUA_CPATH=%LUA_CPATH% >> %GITHUB_ENV% & echo PATH=%PATH% >> %GITHUB_ENV%
+      run: |
+        echo %GITHUB_ENV%
+
+    # run: >
+    #   luarocks path > %temp%\_lrp.bat && call %temp%\_lrp.bat && del
+    #   %temp%\_lrp.bat && echo LUA_PATH=%LUA_PATH% >> %GITHUB_ENV% && echo
+    #   LUA_CPATH=%LUA_CPATH% >> %GITHUB_ENV% && echo PATH=%PATH% >>
+    #   %GITHUB_ENV%
 
     # - name: Check paths
     #   shell: pwsh
