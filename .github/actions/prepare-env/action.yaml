@@ -12,13 +12,23 @@ runs:
       with:
         luaVersion: "5.1.5"
 
+    - name: Setup Linux shell
+      if: runner.os != 'Windows'
+      shell: bash
+      run: echo "SHELL=bash" >> "$GITHUB_ENV"
+
+    - name: Setup Windows shell
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: echo "SHELL=pwsh" >> "$GITHUB_ENV"
+
     - name: Install luarocks
       uses: leafo/gh-actions-luarocks@v6
 
     - name: Install dependencies
-      run: |
-        luarocks install telescope.nvim-scm-1.rockspec
+      shell: ${{ env.SHELL }}
+      run: luarocks install telescope.nvim-scm-1.rockspec
 
     - name: Prepare tests
-      run: |
-        luarocks test --prepare
+      shell: ${{ env.SHELL }}
+      run: luarocks test --prepare

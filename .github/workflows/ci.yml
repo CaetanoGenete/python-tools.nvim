@@ -19,10 +19,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Shell
-        run: |
-          echo ${{ defaults.run.shell }}
-
       - uses: ./.github/actions/prepare-env
 
       - name: Install UV
