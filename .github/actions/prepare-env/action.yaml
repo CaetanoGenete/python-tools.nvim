@@ -28,7 +28,6 @@ runs:
 
     - name: Install luarocks
       uses: ./.github/actions/install-luarocks
-      # uses: leafo/gh-actions-luarocks@v6
 
     - name: Download telescope rockspec
       shell: ${{ env.SHELL }}
