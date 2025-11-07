@@ -40,33 +40,6 @@ runs:
         echo LUA_PATH=%LUA_PATH% >> %GITHUB_ENV%
         echo PATH=%PATH% >> %GITHUB_ENV%
 
-    # run: >
-    #   luarocks path > %temp%\_lrp.bat && call %temp%\_lrp.bat && del
-    #   %temp%\_lrp.bat && echo LUA_PATH=%LUA_PATH% >> %GITHUB_ENV% && echo
-    #   LUA_CPATH=%LUA_CPATH% >> %GITHUB_ENV% && echo PATH=%PATH% >>
-    #   %GITHUB_ENV%
-
-    # - name: Check paths
-    #   shell: pwsh
-    #   run: ./.luarocks/luarocks.bat path
-    #
-    # - name: Set env
-    #   shell: pwsh
-    #   run: |
-    #     foreach ($var in @("PATH", "LUA_PATH", "LUA_CPATH")) {
-    #       $value = ((cat "../luarocks/install-out.txt" | Select-String -Pattern "^\s*$var\s*:\s*(.+)$").Matches | ForEach-Object {
-    #         $_.Groups[1].Value.Trim()
-    #       }) -join ';';
-    #       Set-Variable -Name "$var" -Value "$value"
-    #     };
-    #     echo "${PATH}" >> ${Env:GITHUB_PATH};
-    #     echo "LUA_CPATH=${LUA_CPATH};${Env:LUA_CPATH}" >> ${Env:GITHUB_ENV};
-    #     echo "LUA_PATH=${LUA_PATH};${Env:LUA_PATH}" >> ${Env:GITHUB_ENV};
-
     - name: Check install
       shell: pwsh
       run: luarocks --version
-
-    - name: Cleanup
-      shell: pwsh
-      run: rm -r ../luarocks
