@@ -13,12 +13,18 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout luarocks
-      uses: actions/checkout@v4
-      with:
-        repository: https://github.com/luarocks/luarocks.git
-        ref: v${{ inputs.luarocksVersion }}
-        path: ../luarocks
+    - name: Download luarocks
+      shell: pwsh
+      env:
+        LUAROCKS_TAG: v${{ inputs.luarocksVersion }}
+      run: |
+        git clone --depth 1 --branch ${Env:LUAROCKS_TAG} https://github.com/luarocks/luarocks.git ../luarocks
+
+      # uses: actions/checkout@v4
+      # with:
+      #   repository: https://github.com/luarocks/luarocks.git
+      #   ref: v${{ inputs.luarocksVersion }}
+      #   path: ../luarocks
 
     - name: Compile luarocks
       shell: pwsh
