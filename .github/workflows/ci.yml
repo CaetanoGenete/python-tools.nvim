@@ -20,6 +20,8 @@ jobs:
           submodules: true
 
       - uses: ./.github/actions/prepare-env
+        with:
+          nvim-rev: ${{ matrix.rev }}
 
       - name: Install UV
         uses: astral-sh/setup-uv@v6

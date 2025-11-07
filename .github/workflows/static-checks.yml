@@ -13,7 +13,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: ./.github/actions/prepare-env
+        with:
+          nvim-rev: v0.11.0
 
       - name: Set up Homebrew
         id: set-up-homebrew

@@ -1,11 +1,15 @@
 name: "Prepare environment"
+inputs:
+  nvim-rev:
+    description: "Neovim version"
+    required: true
 runs:
   using: "composite"
   steps:
     - uses: rhysd/action-setup-vim@v1
       with:
         neovim: true
-        version: ${{ matrix.rev }}
+        version: ${{ inputs.nvim-rev }}
 
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: leafo/gh-actions-lua@v12
