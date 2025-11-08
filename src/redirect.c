@@ -12,14 +12,16 @@
 
 static int l_redirect(lua_State *L) {
   const char *file = lua_tostring(L, 1);
-  freopen(file, "a", stdout);
-  freopen(file, "a", stderr);
+  FILE *ptr;
+  freopen_s(&ptr, file, "a", stdout);
+  freopen_s(&ptr, file, "a", stderr);
   return 0;
 }
 
 static int l_recover(lua_State *L) {
-  freopen(TTY, "a", stdout);
-  freopen(TTY, "a", stderr);
+  FILE *ptr;
+  freopen_s(&ptr, TTY, "a", stdout);
+  freopen_s(&ptr, TTY, "a", stderr);
   return 0;
 }
 
