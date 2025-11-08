@@ -51,4 +51,4 @@ $(TEST-ENVS):
 test: $(TEST-ENVS)
 
 .PHONY: test-dev
-test-dev: check-types check-formatting test-3.12
+test-dev: develop check-types check-formatting test-3.12

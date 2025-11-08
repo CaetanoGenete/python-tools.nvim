@@ -10,18 +10,35 @@
 #define LIB_EXPORT
 #endif
 
+static const char *redirect_err = "Failed to redirect %s to '%s'!";
+
 static int l_redirect(lua_State *L) {
   const char *file = lua_tostring(L, 1);
-  FILE *ptr;
-  freopen_s(&ptr, file, "a", stdout);
-  freopen_s(&ptr, file, "a", stderr);
+
+  FILE *stream = freopen(file, "a", stdout);
+  if (!stream) {
+    return luaL_error(L, redirect_err, "stdout", file);
+  }
+
+  if (!freopen(file, "a", stderr)) {
+    fclose(stream);
+    return luaL_error(L, redirect_err, "stderr", file);
+  }
+
   return 0;
 }
 
+static const char *recover_err = "Failed to redirect %s back to console!";
+
 static int l_recover(lua_State *L) {
-  FILE *ptr;
-  freopen_s(&ptr, TTY, "a", stdout);
-  freopen_s(&ptr, TTY, "a", stderr);
+  if (!freopen(TTY, "a", stdout)) {
+    return luaL_error(L, recover_err, "stdout");
+  }
+
+  if (!freopen(TTY, "a", stderr)) {
+    return luaL_error(L, recover_err, "stderr");
+  }
+
   return 0;
 }
 

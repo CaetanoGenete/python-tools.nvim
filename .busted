@@ -8,6 +8,7 @@ return {
 		output = "test.busted.output_handler",
 		ROOT = { "./test/" },
 	},
+	default = {},
 	ci = {
 		output = "TAP",
 	},

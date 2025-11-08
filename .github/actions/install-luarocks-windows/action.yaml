@@ -15,7 +15,7 @@ runs:
   steps:
     - name: Cache luarocks
       id: cache-luarocks
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         key: ${{ runner.os }}-luarocks
         path: |
@@ -25,7 +25,7 @@ runs:
       shell: pwsh
       env:
         CACHE_VALUE: ${{ steps.cache-luarocks.outputs.cache-hit }}
-      run: echo ${Env:CACHE_VALUE}
+      run: echo "Hit=${Env:CACHE_VALUE}"
 
     - name: Download luarocks
       if: steps.cache-luarocks.outputs.cache-hit != 'true'

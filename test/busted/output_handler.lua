@@ -85,8 +85,14 @@ return function(options)
 		local out_path = failure.element.stdout_file
 		local out_file = io.open(out_path, "r")
 		if out_file ~= nil then
-			string = string .. "\n\nstdout:\n" .. out_file:read("all")
+			local stdout = vim.trim(out_file:read("all"))
 			out_file:close()
+
+			if #stdout > 0 then
+				string = string .. "\n\nconsole output:\n" .. stdout
+			else
+				string = string .. "\n\n(No console output)"
+			end
 		end
 		os.remove(out_path)
 
