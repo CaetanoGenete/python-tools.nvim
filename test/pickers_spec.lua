@@ -1,7 +1,6 @@
-require("luassert")
+---@module "luassert"
 
 local tutils = require("test.utils")
-
 local pickers = require("python_tools.pickers")
 
 local action_state = require("telescope.actions.state")

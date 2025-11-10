@@ -1,0 +1,244 @@
+local s = require("say")
+local pretty = require("pl.pretty")
+local term = require("term")
+local luassert = require("luassert")
+local redirect = require("redirect")
+
+local isatty = io.type(io.stdout) == "file" and term.isatty(io.stdout)
+
+local colors
+if not isatty then
+	colors = setmetatable({}, {
+		__index = function()
+			return function(str)
+				return str
+			end
+		end,
+	})
+	luassert:set_parameter("TableErrorHighlightColor", "none")
+else
+	colors = require("term.colors")
+	luassert:set_parameter("TableErrorHighlightColor", "red")
+end
+
+return function(options)
+	local busted = require("busted")
+	local handler = require("busted.outputHandlers.base")()
+
+	local successDot = colors.green("+")
+	local failureDot = colors.red("-")
+	local errorDot = colors.magenta("*")
+	local pendingDot = colors.yellow(".")
+
+	local pendingDescription = function(pending)
+		local name = pending.name
+
+		local string = colors.yellow(s("output.pending"))
+			.. " -> "
+			.. colors.cyan(pending.trace.short_src)
+			.. " @ "
+			.. colors.cyan(pending.trace.currentline)
+			.. "\n"
+			.. colors.bright(name)
+
+		if type(pending.message) == "string" then
+			string = string .. "\n" .. pending.message
+		elseif pending.message ~= nil then
+			string = string .. "\n" .. pretty.write(pending.message)
+		end
+
+		return string
+	end
+
+	local failureMessage = function(failure)
+		local string = failure.randomseed and ("Random seed: " .. failure.randomseed .. "\n") or ""
+		if type(failure.message) == "string" then
+			string = string .. failure.message
+		elseif failure.message == nil then
+			string = string .. "Nil error"
+		else
+			string = string .. pretty.write(failure.message)
+		end
+
+		return string
+	end
+
+	local failureDescription = function(failure, isError)
+		local string = colors.red(s("output.failure")) .. " -> "
+		if isError then
+			string = colors.magenta(s("output.error")) .. " -> "
+		end
+
+		if not failure.element.trace or not failure.element.trace.short_src then
+			string = string .. colors.cyan(failureMessage(failure)) .. "\n" .. colors.bright(failure.name)
+		else
+			string = string
+				.. colors.cyan(failure.element.trace.short_src)
+				.. " @ "
+				.. colors.cyan(failure.element.trace.currentline)
+				.. "\n"
+				.. colors.bright(failure.name)
+				.. "\n"
+				.. failureMessage(failure)
+		end
+
+		local out_path = failure.element.stdout_file
+		local out_file = io.open(out_path, "r")
+		if out_file ~= nil then
+			local stdout = vim.trim(out_file:read("all"))
+			out_file:close()
+
+			if #stdout > 0 then
+				string = string .. "\n\nconsole output:\n" .. stdout
+			else
+				string = string .. "\n\n(No console output)"
+			end
+		end
+		os.remove(out_path)
+
+		if options.verbose and failure.trace and failure.trace.traceback then
+			string = string .. "\n" .. failure.trace.traceback
+		end
+
+		return string
+	end
+
+	local statusString = function()
+		local successString = s("output.success_plural")
+		local failureString = s("output.failure_plural")
+		local pendingString = s("output.pending_plural")
+		local errorString = s("output.error_plural")
+
+		local sec = handler.getDuration()
+		local successes = handler.successesCount
+		local pendings = handler.pendingsCount
+		local failures = handler.failuresCount
+		local errors = handler.errorsCount
+
+		if successes == 0 then
+			successString = s("output.success_zero")
+		elseif successes == 1 then
+			successString = s("output.success_single")
+		end
+
+		if failures == 0 then
+			failureString = s("output.failure_zero")
+		elseif failures == 1 then
+			failureString = s("output.failure_single")
+		end
+
+		if pendings == 0 then
+			pendingString = s("output.pending_zero")
+		elseif pendings == 1 then
+			pendingString = s("output.pending_single")
+		end
+
+		if errors == 0 then
+			errorString = s("output.error_zero")
+		elseif errors == 1 then
+			errorString = s("output.error_single")
+		end
+
+		local formattedTime = string.gsub(string.format("%.6f", sec), "([0-9])0+$", "%1")
+
+		return colors.green(successes)
+			.. " "
+			.. successString
+			.. " / "
+			.. colors.red(failures)
+			.. " "
+			.. failureString
+			.. " / "
+			.. colors.magenta(errors)
+			.. " "
+			.. errorString
+			.. " / "
+			.. colors.yellow(pendings)
+			.. " "
+			.. pendingString
+			.. " : "
+			.. colors.bright(formattedTime)
+			.. " "
+			.. s("output.seconds")
+	end
+
+	handler.testStart = function(element)
+		local out_file = os.tmpname()
+		element.stdout_file = out_file
+		redirect.redirect(out_file)
+	end
+
+	handler.testEnd = function(element, _, status, _)
+		redirect.recover()
+
+		if not vim.list_contains({ "failure", "error" }, status) then
+			-- Will discard others later in error-handler
+			os.remove(element.stdout_file)
+		end
+
+		if not options.deferPrint then
+			local string = successDot
+
+			if status == "pending" then
+				string = pendingDot
+			elseif status == "failure" then
+				string = failureDot
+			elseif status == "error" then
+				string = errorDot
+			end
+
+			io.write(string)
+			io.flush()
+		end
+
+		return nil, true
+	end
+
+	handler.suiteStart = function(_, count, total)
+		local runString = (total > 1 and "\nRepeating all tests (run %u of %u) . . .\n\n" or "")
+		io.write(string.format(runString, count, total))
+		io.flush()
+
+		return nil, true
+	end
+
+	handler.suiteEnd = function()
+		io.write("\n")
+		io.write(statusString() .. "\n")
+
+		for _, pending in pairs(handler.pendings) do
+			io.write("\n")
+			io.write(pendingDescription(pending) .. "\n")
+		end
+
+		for _, err in pairs(handler.failures) do
+			io.write("\n")
+			io.write(failureDescription(err) .. "\n")
+		end
+
+		for _, err in pairs(handler.errors) do
+			io.write("\n")
+			io.write(failureDescription(err, true) .. "\n")
+		end
+
+		return nil, true
+	end
+
+	handler.error = function()
+		io.write(errorDot)
+		io.flush()
+
+		return nil, true
+	end
+
+	busted.subscribe({ "test", "start" }, handler.testStart, { predicate = handler.cancelOnPending })
+	busted.subscribe({ "test", "end" }, handler.testEnd, { predicate = handler.cancelOnPending })
+	busted.subscribe({ "suite", "start" }, handler.suiteStart)
+	busted.subscribe({ "suite", "end" }, handler.suiteEnd)
+	busted.subscribe({ "error", "file" }, handler.error)
+	busted.subscribe({ "failure", "file" }, handler.error)
+	busted.subscribe({ "error", "describe" }, handler.error)
+	busted.subscribe({ "failure", "describe" }, handler.error)
+
+	return handler
+end

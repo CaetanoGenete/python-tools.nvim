@@ -16,8 +16,11 @@ return {
 ## Dependencies
 
 - [NeoVim](https://github.com/neovim/neovim) 0.11
-- [Telescope](https://github.com/nvim-telescope/telescope.nvim) (Optional)
 - Python >=3.8 (Your milage may vary for earlier versions)
+- A python tree-sitter parser. (Can be installed using
+  [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter), for
+  example).
+- [Telescope](https://github.com/nvim-telescope/telescope.nvim) (Optional)
 
 ## Features
 
@@ -160,4 +163,53 @@ from sys import argv
 
 eps = entry_points(name=argv[1], group=argv[2])
 next(iter(eps)).load()()
+```
+
+## Development
+
+### Dev dependencies
+
+- [cmake](https://cmake.org/)
+- [luarocks](https://luarocks.org/)
+- [stylua](https://github.com/JohnnyMorganz/StyLua)
+- [uv](https://astral.sh/uv/)
+- [lua-language-server](https://luals.github.io/)
+- [busted](https://lunarmodules.github.io/busted/)
+- [tree-sitter-cli](https://tree-sitter.github.io/tree-sitter/) (If on windows)
+
+To get started, simply run `make develop` and the environment should be setup
+accordingly.
+
+### Dockerfile
+
+There is a simple dockerfile defined at the root of this project that creates an
+image with all necessary dependencies. You may use it as a dev-container, or
+otherwise as a test environmet by simply running:
+
+```bash
+docker build -t pytools .
+docker run -it pytools
+```
+
+It's a good idea to try running the tests when first building the image, to
+ensure everything is ok. The next section covers this.
+
+### Executing tests
+
+You may execute tests using the busted provided script:
+
+```bash
+busted
+```
+
+Using luarocks:
+
+```bash
+luarocks test
+```
+
+Or through make:
+
+```bash
+make test-dev # Or make test-all
 ```

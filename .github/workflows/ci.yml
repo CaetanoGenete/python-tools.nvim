@@ -1,0 +1,46 @@
+name: Tests
+on:
+  pull_request:
+    branches:
+      - master
+jobs:
+  unit_tests:
+    name: unit tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-2022]
+        rev: [v0.11.0]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/prepare-env
+        with:
+          nvim-rev: ${{ matrix.rev }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Build lib
+        env:
+          CMAKE_PREFIX_PATH: .lua/
+        run: make compile
+
+      - name: Install tree-sitter
+        if: runner.os == 'Windows'
+        run: choco install tree-sitter --version 0.25.2
+
+      # Note: This is required for `luarocks test --prepare` to succeed.
+      - name: Build treesitter grammar python
+        run: make compile-parser
+
+      - name: Run tests
+        env:
+          BUSTED_PROFILE: ci
+        run: make test-all

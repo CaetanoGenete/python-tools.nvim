@@ -1,34 +1,20 @@
-local joinpath = vim.fs.joinpath
-
-local plugin_path = os.getenv("TEST_PLUGIN_PATH")
-if not plugin_path then
-	-- Default to lazy default install path
-	plugin_path = joinpath(vim.fn.stdpath("data"), "lazy")
-end
-plugin_path = vim.fn.expand(plugin_path)
-vim.print("Resolved plugin path to: " .. plugin_path)
-
-local plugins = {
-	"plenary.nvim",
-	"telescope.nvim",
-	"treesitter",
-}
-for _, plugin in ipairs(plugins) do
-	vim.opt.rtp:append(joinpath(plugin_path, plugin))
+if vim.version.lt(vim.version(), { 0, 11, 0 }) then
+	error("Only supporting Neovim version >= 0.11, please update.")
 end
 
-vim.cmd("runtime! plugin/plenary.vim")
-require("nvim-treesitter").setup()
-
-if not require("nvim-treesitter.parsers").has_parser("python") then
-	vim.cmd("TSInstallSync! python")
-end
+local py_parser_path
+local python_path
 
 if vim.fn.has("win32") == 1 then
-	vim.g.pytools_default_python_path = "./test/fixtures/mock-repo/.venv/Scripts/python.exe"
+	python_path = "./test/fixtures/mock-repo/.venv/Scripts/python.exe"
+	py_parser_path = "./build-ts/install/bin/tree-sitter-python.dll"
 else
-	vim.g.pytools_default_python_path = "./test/fixtures/mock-repo/.venv/bin/python"
+	python_path = "./test/fixtures/mock-repo/.venv/bin/python"
+	py_parser_path = "./build-ts/install/lib/libtree-sitter-python.so"
 end
+
+vim.g.pytools_default_python_path = python_path
+vim.treesitter.language.add("python", { path = py_parser_path })
 
 -- Prevent messing up local SHADA during tests
 vim.opt.shadafile = "NONE"

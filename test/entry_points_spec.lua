@@ -1,7 +1,9 @@
----@module "plenary.test_harness"
+---@module "luassert"
 
 local tutils = require("test.utils")
 local ep = require("python_tools.meta.entry_points")
+
+local async = tutils.async
 
 ---@param entry_points EntryPointDef[]
 local function sort_entry_points(entry_points)
@@ -77,7 +79,7 @@ for _, case in ipairs(AENTRY_POINTS_CASES) do
 	end
 
 	describe("aentry_points tests:", function()
-		it(test_name, function()
+		async(it, test_name, function()
 			local actual
 			if case.use_importlib then
 				actual = assert(ep.aentry_points_importlib(case.opts))
@@ -100,7 +102,7 @@ for _, case in ipairs(AENTRY_POINTS_CASES) do
 end
 
 describe("aentry_points_from_project tests:", function()
-	it("should correctly list all available entry_points from mock-setup-py-repo", function()
+	async(it, "should correctly list all available entry_points from mock-setup-py-repo", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
 		local actual = assert(ep.aentry_points_from_setuppy(search_dir))
 
@@ -110,7 +112,7 @@ describe("aentry_points_from_project tests:", function()
 		assert.same(expected, actual)
 	end)
 
-	it("should fail if file is not the right format", function()
+	async(it, "should fail if file is not the right format", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir", "placeholder.txt")
 		local actual, err = ep.aentry_points_from_setuppy(search_dir)
 
@@ -134,6 +136,9 @@ local AENTRY_POINT_LOCATION_CASES = {
 for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 	local test_name = ("aentry_point_location tests, use_importlib = %s:"):format(opts.use_importlib)
 
+	---@async
+	---@param def EntryPointDef
+	---@return EntryPoint?, string?
 	local function test_func(def)
 		if opts.use_importlib then
 			return ep.aentry_point_location_importlib(def, opts.opt)
@@ -149,7 +154,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 		end)
 
 		for _, case in ipairs(fixt) do
-			it("should find the correct location for `" .. case.name .. "`", function()
+			async(it, "should find the correct location for `" .. case.name .. "`", function()
 				local actual = assert(test_func(case))
 				local expected_path = vim.fs.joinpath(TEST_PATH, "fixtures", case.rel_filepath)
 
@@ -160,7 +165,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 			end)
 		end
 
-		it("should fail for `ep5`", function()
+		async(it, "should fail for `ep5`", function()
 			local def = {
 				name = "ep5",
 				group = "console_scripts",

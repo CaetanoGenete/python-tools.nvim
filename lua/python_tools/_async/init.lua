@@ -17,7 +17,7 @@ end
 ---@generic R
 ---@param async_function fun(...): R Async function to be scheduleded.
 ---@param callback fun(success: boolean, result: R?) Callback to be executed upon completion.
----@param ... any Additional arguments to be passed to `async_function`
+---@vararg any Additional arguments to be passed to `async_function`
 function M.run_callback(async_function, callback, ...)
 	M.run(function(...)
 		callback(pcall(async_function, ...))

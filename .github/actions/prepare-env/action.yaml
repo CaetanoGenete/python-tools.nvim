@@ -1,0 +1,47 @@
+name: "Prepare environment"
+inputs:
+  nvim-rev:
+    description: "Neovim version"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: rhysd/action-setup-vim@v1
+      with:
+        neovim: true
+        version: ${{ inputs.nvim-rev }}
+
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: leafo/gh-actions-lua@v12
+      with:
+        luaVersion: "5.1.5"
+
+    - name: Setup Linux shell
+      if: runner.os != 'Windows'
+      shell: bash
+      run: echo "SHELL=bash" >> "$GITHUB_ENV"
+
+    - name: Setup Windows shell
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: echo "SHELL=pwsh" >> "${Env:GITHUB_ENV}"
+
+    - name: Install luarocks
+      uses: ./.github/actions/install-luarocks
+
+    - name: Download telescope rockspec
+      shell: ${{ env.SHELL }}
+      run: |
+        curl https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec -o telescope.nvim-scm-1.rockspec
+
+    - name: Install dependencies
+      shell: ${{ env.SHELL }}
+      run: luarocks install telescope.nvim-scm-1.rockspec
+
+    - name: Prepare tests
+      shell: ${{ env.SHELL }}
+      run: luarocks test --prepare
+
+    - name: Check busted on path
+      shell: ${{ env.SHELL }}
+      run: busted --version

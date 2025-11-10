@@ -1,6 +1,6 @@
 -- IMPORTANT: this module MUST be at the root of the `/test` directory!
 
----Full path to the `/test` directory.
+--- Full path to the `/test` directory.
 TEST_PATH = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
 
 local M = {}
@@ -24,8 +24,52 @@ function M.get_fixture(...)
 	return vim.deepcopy(cached)
 end
 
+local ASYNC_TEST_TIMEOUT_MS = 5000
+local ASYNC_TEST_INTERVAL_MS = 20
+
 function M.clear_fixture_cache()
 	fixture_cache = {}
+end
+
+--- Helper function for writting async tests.
+---
+--- Example usage:
+--- ```lua
+--- async(it, "should test", function()
+---		assert(10 == 11, "That's not quite right...")
+--- end)
+--- ```
+---
+---@generic T
+---@param it fun(name: string, fn: fun()) busted `it` callable.
+---@param name string The name of the test.
+---@param callable fun(): T?
+function M.async(it, name, callable)
+	it(name, function()
+		local status = "pending"
+		local err = nil
+
+		require("python_tools._async").run_callback(callable, function(success, result)
+			if not success then
+				err = result
+				status = "error"
+			else
+				status = "complete"
+			end
+		end)
+
+		vim.wait(ASYNC_TEST_TIMEOUT_MS, function()
+			return status ~= "pending"
+		end, ASYNC_TEST_INTERVAL_MS)
+
+		if status == "pending" then
+			error("Timeout!")
+		end
+
+		if status == "error" then
+			error(err)
+		end
+	end)
 end
 
 return M
