@@ -11,6 +11,8 @@ RUN apt update && apt install -y cmake lua5.1 luarocks git \
 	&& wget -qO- https://github.com/LuaLS/lua-language-server/releases/download/3.15.0/lua-language-server-3.15.0-linux-x64.tar.gz | tar -xvz --one-top-level=lua-ls \
 	&& cp -r ./lua-ls/* /usr/
 
+ENV PATH=${PATH}:/root/.local/bin/
+
 WORKDIR /home/project/
 
 RUN wget https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec && \
@@ -23,3 +25,5 @@ RUN --mount=type=bind,source=./python-tools.nvim-0.2-0.rockspec,target=./python-
 	&& luarocks test --prepare ./python-tools.nvim-0.2-0.rockspec
 
 COPY . .
+
+RUN make develop

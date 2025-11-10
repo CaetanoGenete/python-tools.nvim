@@ -43,4 +43,4 @@ jobs:
       - name: Run tests
         env:
           BUSTED_PROFILE: ci
-        run: make test
+        run: make test-all
