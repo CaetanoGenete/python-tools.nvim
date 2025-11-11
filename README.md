@@ -29,8 +29,8 @@ return {
 ![entrypoints_demo](./docs/assets/pick_entrypoints_demo.gif)
 
 Opens a telescope picker, with option to choose from entry-points available in
-the current environment. See `python_tools.pickers.EntryPointPickerOptions` for
-more details on what each option does.
+the current environment. For more details on what each option does, see
+`python_tools.pickers.EntryPointPickerOptions`.
 
 ```lua
 -- Options are all defaults, no need to specify them, unless you really want to.
@@ -79,8 +79,8 @@ require("python_tools.pickers").find_entry_points({
 ### List entry points relative to the current buffer
 
 By default, when `use_importlib=false`, the _current working directory_ is used
-to scan for entrypoints. However, In large mono repos, to prevent having to
-constanly switch directory, it may be convenient to list entry points releative
+to scan for entrypoints. However, in large mono repos, to prevent having to
+constanly switch directory, it may be convenient to list entry points relative
 to the _current buffer_. This can be done via the `search_dir` option.
 
 ```lua
@@ -191,8 +191,8 @@ docker build -t pytools .
 docker run -it pytools
 ```
 
-It's a good idea to try running the tests when first building the image, to
-ensure everything is ok. The next section covers this.
+To ensure everything is ok, it's a good idea to try running the tests when first
+building the image. The [next section](#executing-tests) covers this.
 
 ### Executing tests
 
@@ -202,13 +202,14 @@ You may execute tests using the busted provided script:
 busted
 ```
 
-Using luarocks:
+Using luarocks (Which calls busted for you):
 
 ```bash
 luarocks test
 ```
 
-Or through make:
+Or through make (Which also calls busted for you, but handles other
+dependencies):
 
 ```bash
 make test-dev # Or make test-all

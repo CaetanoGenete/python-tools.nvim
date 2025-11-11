@@ -1,4 +1,7 @@
 ---@module "luassert"
+---@module "busted"
+
+require("test.asserts")
 
 local tutils = require("test.utils")
 local pickers = require("python_tools.pickers")
@@ -6,27 +9,14 @@ local pickers = require("python_tools.pickers")
 local action_state = require("telescope.actions.state")
 local actions = require("telescope.actions")
 
----@diagnostic disable-next-line: deprecated
-local unpack = unpack or table.unpack
-
-local function assert_poll(time, func, ...)
-	local args = { ... }
-
-	vim.wait(time, function()
-		return func(unpack(args))
-	end)
-
-	local passed = func(unpack(args))
-	assert.are_true(passed, "Assert poll timeout!")
-end
-
 local function wait_for_picker()
 	local picker
-	assert_poll(8000, function()
+	assert.poll(function()
 		local buf = vim.api.nvim_get_current_buf()
 		picker = action_state.get_current_picker(buf)
 		return picker ~= nil
-	end)
+	end, { timeout = 3000 })
+
 	return picker
 end
 
@@ -42,14 +32,8 @@ local function search_selection(picker, name)
 		next = action_state.get_selected_entry()
 	until first_selected == next
 
-	error("Could not find " .. name)
+	assert(false, "Could not find " .. name)
 end
-
-local function assert_paths_same(expected, actual)
-	assert.are_same(vim.fs.normalize(expected), vim.fs.normalize(actual))
-end
-
-local MOCK_SETUP_PY_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-setup-py-repo")
 
 local PICKER_TEST_CASES = {
 	{
@@ -63,34 +47,36 @@ local PICKER_TEST_CASES = {
 		use_importlib = false,
 		group = nil,
 		python_path = nil,
-		search_dir = MOCK_SETUP_PY_REPO_PATH,
+		search_dir = vim.fs.joinpath(TEST_PATH, "fixtures/mock-setup-py-repo"),
 		fixture = tutils.get_fixture("entry_points", "mock_setup_py_entry_points.json"),
 	},
 }
 
-for _, opts in ipairs(PICKER_TEST_CASES) do
-	describe("Test entry_points picker: select successful -", function()
+describe("Test entry_points picker: select successful -", function()
+	for test_num, opts in ipairs(PICKER_TEST_CASES) do
 		-- Skip expected failing entries
 		local fixt = vim.fn.filter(opts.fixture, function(_, value)
 			return value.lineno ~= vim.NIL
 		end)
 
 		for _, expected in ipairs(fixt) do
-			it(expected.name, function()
+			it(("test %d - entry point '%s'"):format(test_num, expected.name), function()
+				tutils.log("find_entry_points opts: %s", opts)
+
 				pickers.find_entry_points(opts)
 
 				local picker = wait_for_picker()
 				search_selection(picker, expected.name)
 
 				actions.select_default(picker.prompt_bufnr)
-				assert_paths_same(
+				assert.paths_same(
 					vim.fs.joinpath(TEST_PATH, "fixtures", expected.rel_filepath),
 					vim.api.nvim_buf_get_name(0)
 				)
 			end)
 		end
-	end)
-end
+	end
+end)
 
 describe("Test entry_points picker: select failure -", function()
 	before_each(function()
@@ -105,12 +91,19 @@ describe("Test entry_points picker: select failure -", function()
 
 		local last_buff_name = vim.api.nvim_buf_get_name(0)
 		actions.select_default(picker.prompt_bufnr)
-		assert_paths_same(last_buff_name, vim.api.nvim_buf_get_name(0))
+		assert.paths_same(last_buff_name, vim.api.nvim_buf_get_name(0))
 
 		local messages = vim.split(vim.fn.execute("messages", "silent"), "\n")
-		assert.are_equal("Entry-point origin could not be found!", messages[#messages])
+		assert.are.equal("Entry-point origin could not be found!", messages[#messages])
 	end)
 end)
+
+---@param list table<string, any>
+local function sort_qflist(list)
+	table.sort(list, function(lhs, rhs)
+		return lhs.text < rhs.text
+	end)
+end
 
 local QFLIST_TEST_CASES = {
 	{
@@ -125,34 +118,18 @@ local QFLIST_TEST_CASES = {
 	},
 }
 
----@param list table<string, any>
-local function sort_qflist(list)
-	table.sort(list, function(lhs, rhs)
-		return lhs.text < rhs.text
-	end)
-end
+describe("Test entry_points picker: send to quickfix -", function()
+	for test_num, case in ipairs(QFLIST_TEST_CASES) do
+		it(("Should send all entries to '%s' list"):format(case.list), function()
+			tutils.log("Test case %d: %s", test_num, case)
 
----@param expected table<string, any>
----@param actual table<string, any>
-local function assert_tbl_subset(expected, actual)
-	local filtered_actual = {}
-	for k in pairs(expected) do
-		filtered_actual[k] = actual[k]
-	end
-
-	assert.same(expected, filtered_actual)
-end
-
-describe("Test entry_points picker: actions - ", function()
-	for _, case in ipairs(QFLIST_TEST_CASES) do
-		it("Should send all entires to " .. case.list .. "list", function()
 			pickers.find_entry_points()
 
 			local picker = wait_for_picker()
 			case.action(picker.prompt_bufnr)
 
 			local actual
-			assert_poll(8000, function()
+			assert.poll(function()
 				if case.list == "qf" then
 					actual = vim.fn.getqflist()
 				else
@@ -166,7 +143,7 @@ describe("Test entry_points picker: actions - ", function()
 
 			assert.same(#case.fixture, #actual)
 			for i = 1, #actual do
-				assert_tbl_subset(case.fixture[i], actual[i])
+				assert.subset(case.fixture[i], actual[i])
 			end
 		end)
 	end

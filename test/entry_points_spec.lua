@@ -1,4 +1,7 @@
 ---@module "luassert"
+---@module "busted"
+
+require("test.asserts")
 
 local tutils = require("test.utils")
 local ep = require("python_tools.meta.entry_points")
@@ -70,16 +73,11 @@ local AENTRY_POINTS_CASES = {
 	},
 }
 
-for _, case in ipairs(AENTRY_POINTS_CASES) do
-	local test_name = "should list entry-points with"
-	for key, value in pairs(case.opts) do
-		if value ~= nil then
-			test_name = test_name .. (" %s=`%s`"):format(key, value)
-		end
-	end
+describe("List entry points tests -", function()
+	for test_num, case in ipairs(AENTRY_POINTS_CASES) do
+		async(it, ("test case %d"):format(test_num), function()
+			tutils.log("Test case: %s", case)
 
-	describe("aentry_points tests:", function()
-		async(it, test_name, function()
 			local actual
 			if case.use_importlib then
 				actual = assert(ep.aentry_points_importlib(case.opts))
@@ -89,8 +87,8 @@ for _, case in ipairs(AENTRY_POINTS_CASES) do
 			sort_entry_points(actual)
 
 			local expected = case.fixture
-			-- If `group` is provided, filter fixture
 			if case.opts.group ~= nil then
+				-- If `group` is provided, filter fixture
 				expected = vim.fn.filter(expected, function(_, value)
 					return value.group == case.opts.group
 				end)
@@ -98,10 +96,10 @@ for _, case in ipairs(AENTRY_POINTS_CASES) do
 
 			assert.same(expected, actual)
 		end)
-	end)
-end
+	end
+end)
 
-describe("aentry_points_from_project tests:", function()
+describe("aentry_points_from_project tests -", function()
 	async(it, "should correctly list all available entry_points from mock-setup-py-repo", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
 		local actual = assert(ep.aentry_points_from_setuppy(search_dir))
@@ -133,35 +131,33 @@ local AENTRY_POINT_LOCATION_CASES = {
 	},
 }
 
-for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
-	local test_name = ("aentry_point_location tests, use_importlib = %s:"):format(opts.use_importlib)
-
-	---@async
-	---@param def EntryPointDef
-	---@return EntryPoint?, string?
-	local function test_func(def)
-		if opts.use_importlib then
-			return ep.aentry_point_location_importlib(def, opts.opt)
-		else
-			return ep.aentry_point_location_ts(def, opts.opt)
-		end
+---@async
+---@param def EntryPointDef
+---@param opts any
+---@return EntryPoint?, string?
+local function atest_func(def, opts)
+	if opts.use_importlib then
+		return ep.aentry_point_location_importlib(def, opts.opt)
+	else
+		return ep.aentry_point_location_ts(def, opts.opt)
 	end
+end
 
+for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
+	-- Skip expected failing entries
+	local fixt = vim.fn.filter(opts.fixture, function(_, value)
+		return value.lineno ~= vim.NIL
+	end)
+
+	local test_name = ("aentry_point_location tests, use_importlib=%s -"):format(opts.use_importlib)
 	describe(test_name, function()
-		-- Skip expected failing entries
-		local fixt = vim.fn.filter(opts.fixture, function(_, value)
-			return value.lineno ~= vim.NIL
-		end)
-
 		for _, case in ipairs(fixt) do
-			async(it, "should find the correct location for `" .. case.name .. "`", function()
-				local actual = assert(test_func(case))
+			async(it, ("should find the correct location for `%s`"):format(case.name), function()
+				local actual = assert(atest_func(case, opts))
 				local expected_path = vim.fs.joinpath(TEST_PATH, "fixtures", case.rel_filepath)
 
-				assert.same(
-					{ expected_path, case.lineno },
-					{ vim.fs.normalize(actual.filename), actual.lineno }
-				)
+				assert.paths_same(expected_path, actual.filename)
+				assert.same(case.lineno, actual.lineno)
 			end)
 		end
 
@@ -172,7 +168,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 				value = { "hello", "no_such_function" },
 			}
 
-			local result, err = test_func(def)
+			local result, err = atest_func(def, opts)
 			assert.is_nil(result)
 			assert.no.is_nil(err)
 		end)

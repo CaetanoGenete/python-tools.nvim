@@ -1,9 +1,8 @@
 -- IMPORTANT: this module MUST be at the root of the `/test` directory!
+local M = {}
 
 --- Full path to the `/test` directory.
 TEST_PATH = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
-
-local M = {}
 
 local fixture_cache = {}
 
@@ -24,12 +23,12 @@ function M.get_fixture(...)
 	return vim.deepcopy(cached)
 end
 
-local ASYNC_TEST_TIMEOUT_MS = 5000
-local ASYNC_TEST_INTERVAL_MS = 20
-
 function M.clear_fixture_cache()
 	fixture_cache = {}
 end
+
+local ASYNC_TEST_TIMEOUT_MS = 5000
+local ASYNC_TEST_INTERVAL_MS = 20
 
 --- Helper function for writting async tests.
 ---
@@ -70,6 +69,69 @@ function M.async(it, name, callable)
 			error(err)
 		end
 	end)
+end
+
+---@param value any
+---@param curr_indent integer
+---@param indent integer
+---@return string
+local function _pretty_format(value, curr_indent, indent)
+	if type(value) == "string" then
+		return ('"%s"'):format(value)
+	end
+
+	if type(value) ~= "table" then
+		return value
+	end
+
+	local result = "{\n"
+	local indent_str = (" "):rep(curr_indent + indent)
+
+	for k, v in pairs(value) do
+		if type(k) == "string" then
+			k = ('"%s"'):format(k)
+		end
+
+		result = ("%s%s[%s] = %s,\n"):format(
+			result,
+			indent_str,
+			tostring(k),
+			tostring(_pretty_format(v, curr_indent + indent, indent))
+		)
+	end
+	result = ("%s%s}"):format(result, (" "):rep(curr_indent))
+
+	return result
+end
+
+--- Pretty formats table.
+---
+--- If `value` is not a table, this function acts like the identity.
+---
+---@param value any
+---@param indent integer?
+---@return string
+local function pretty_format(value, indent)
+	if type(value) ~= "table" then
+		return value
+	end
+
+	return _pretty_format(value, 0, indent or 2)
+end
+
+--- Logs the provided message `message`, with printf style format args. Any tables will be pretty
+--- printed.
+---
+---@param message string
+---@vararg any
+function M.log(message, ...)
+	local args = {}
+
+	for _, value in pairs({ ... }) do
+		table.insert(args, pretty_format(value))
+	end
+
+	print(("[test-log] %s"):format(message:format(table.unpack(args))))
 end
 
 return M
