@@ -29,11 +29,13 @@ local ignore_dirs = {
 }
 
 -- Ignore plenary...
-for _, path in ipairs(vim.split(lua_path or {}, ";", { trimempty = true, plain = true })) do
-	local dir = vim.fs.normalize(vim.fs.dirname(path))
-	for _, match in ipairs(vim.fs.find("plenary", { type = "directory", path = dir })) do
-		vim.print(("Found plenary at: '%s', adding to ignore list..."):format(match))
-		table.insert(ignore_dirs, match)
+if lua_path ~= nil then
+	for _, path in ipairs(vim.split(lua_path, ";", { trimempty = true, plain = true })) do
+		local dir = vim.fs.normalize(vim.fs.dirname(path))
+		for _, match in ipairs(vim.fs.find("plenary", { type = "directory", path = dir })) do
+			vim.print(("Found plenary at: '%s', adding to ignore list..."):format(match))
+			table.insert(ignore_dirs, match)
+		end
 	end
 end
 
