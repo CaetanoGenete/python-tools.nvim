@@ -134,4 +134,19 @@ function M.log(message, ...)
 	print(("[test-log] %s"):format(message:format(table.unpack(args))))
 end
 
+--- Returns a shallow copy of `tbl`, with only the keys in `fields`.
+---
+---@generic T
+---@generic U
+---@param tbl table<T, U>
+---@param fields T[]
+---@return table<T, U>
+function M.tbl_subset(tbl, fields)
+	local result = {}
+	for _, field in ipairs(fields) do
+		result[field] = tbl[field]
+	end
+	return result
+end
+
 return M

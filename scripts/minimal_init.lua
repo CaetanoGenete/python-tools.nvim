@@ -2,6 +2,8 @@ if vim.version.lt(vim.version(), { 0, 11, 0 }) then
 	error("Only supporting Neovim version >= 0.11, please update.")
 end
 
+package.path = package.path .. ";./lua/?.lua;./lua/?/init.lua"
+
 local py_parser_path
 local python_path
 

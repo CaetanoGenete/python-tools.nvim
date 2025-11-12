@@ -148,3 +148,154 @@ describe("Test entry_points picker: send to quickfix -", function()
 		end)
 	end
 end)
+
+describe("find_files", function()
+	local nvim
+
+	before_each(function()
+		nvim = vim.fn.jobstart(
+			{ "nvim", "-u", "./scripts/minimal_init.lua", "--embed" },
+			{ rpc = true }
+		)
+		vim.rpcrequest(nvim, "nvim_ui_attach", 140, 48, {})
+	end)
+
+	after_each(function()
+		vim.fn.jobstop(nvim)
+	end)
+
+	it("should debounce selections", function()
+		local debounce_duration_ms = 200
+
+		-- Open picker
+		vim.rpcrequest(
+			nvim,
+			"nvim_exec_lua",
+			([[
+				require("python_tools.pickers").find_entry_points({debounce_duration_ms = %d})
+			]]):format(debounce_duration_ms),
+			{}
+		)
+
+		-- If navigating faster than debounce duration, then nothing should be loaded!
+		for _ = 1, 5 do
+			vim.wait(debounce_duration_ms * 0.8)
+			local result = vim.rpcrequest(
+				nvim,
+				"nvim_exec_lua",
+				[[
+					local entry = require("telescope.actions.state").get_selected_entry()
+					if entry == nil then
+						return nil
+					end
+
+					return {
+						entry.lnum or "_no_value_",
+						entry.filename or "_no_value_",
+					}
+				]],
+				{}
+			)
+			assert.same({ "_no_value_", "_no_value_" }, result)
+			vim.rpcrequest(nvim, "nvim_input", "<Up>")
+		end
+
+		local entries = assert(vim.rpcrequest(
+			nvim,
+			"nvim_exec_lua",
+			[[
+				local action_state = require("telescope.actions.state")
+				local buf = vim.api.nvim_get_current_buf()
+				local results = action_state.get_current_picker(buf).finder.results
+
+				return vim.tbl_map(function(x)
+					return {x.lnum or "_no_value_", x.filename or "_no_value_"}
+				end, results)
+			]],
+			{}
+		))
+		assert.True(#entries > 0)
+
+		--- Check no entry-point entries have been loaded
+		for _, entry in ipairs(entries) do
+			assert.same({ "_no_value_", "_no_value_" }, entry)
+		end
+
+		-- Check the entry-point will be loaded eventually.
+		assert.poll(function()
+			local result = vim.rpcrequest(
+				nvim,
+				"nvim_exec_lua",
+				[[
+					local entry = require("telescope.actions.state").get_selected_entry()
+					return {
+						entry.lnum or "_no_value_",
+						entry.filename or "_no_value_",
+					}
+				]],
+				{}
+			)
+			return result ~= nil and result[1] ~= "_no_value_" and result[2] ~= "_no_value_"
+		end, { timeout = 10000 })
+	end)
+
+	it("will still select if debouncing", function()
+		local debounce_duration_ms = 200
+
+		-- Open picker
+		vim.rpcrequest(
+			nvim,
+			"nvim_exec_lua",
+			([[
+				require("python_tools.pickers").find_entry_points({debounce_duration_ms = %d})
+			]]):format(debounce_duration_ms),
+			{}
+		)
+
+		---@type EntryPointDef
+		local entry
+
+		assert.poll(function()
+			local resp = vim.rpcrequest(
+				nvim,
+				"nvim_exec_lua",
+				[[
+					local entry = require("telescope.actions.state").get_selected_entry()
+					if entry == nil then
+						return nil
+					end
+
+					return entry.value
+				]],
+				{}
+			)
+
+			if resp == nil then
+				return false
+			end
+			entry = resp
+
+			return entry ~= vim.NIL
+		end)
+
+		assert.equal("", vim.rpcrequest(nvim, "nvim_buf_get_name", 0))
+
+		vim.rpcrequest(
+			nvim,
+			"nvim_exec_lua",
+			[[
+				local action_state = require("telescope.actions.state")
+				local action = require("telescope.actions")
+
+				local buf = vim.api.nvim_get_current_buf()
+				action.select_default(action_state.get_current_picker(buf).prompt_bufnr)
+			]],
+			{}
+		)
+
+		assert.poll(function()
+			local result = vim.rpcrequest(nvim, "nvim_buf_get_name", 0)
+			return result ~= nil and #result > 0
+		end)
+	end)
+end)

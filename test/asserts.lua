@@ -51,11 +51,11 @@ local function subset(_, arguments)
 		error("Second argument to `assert.subset` should be a table!")
 	end
 
-	local sub = {}
-	for key in pairs(lhs) do
-		sub[key] = rhs[key]
-	end
-
+	local sub = require("test.utils").tbl_subset(rhs, vim.tbl_keys(lhs))
+	-- for key in pairs(lhs) do
+	-- 	sub[key] = rhs[key]
+	-- end
+	--
 	local result, crumbs = util.deepcompare(lhs, sub, true)
 
 	arguments.fmtargs = arguments.fmtargs or {}
