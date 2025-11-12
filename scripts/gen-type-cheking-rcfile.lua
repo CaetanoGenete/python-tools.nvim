@@ -13,7 +13,10 @@ if lua_path ~= nil then
 	rtps = vim.list_extend(rtps, vim.split(lua_path, ";", { trimempty = true }))
 end
 
-local libs = {}
+local libs = {
+	"./lua/_meta",
+}
+
 -- Add addons
 for _, dir in ipairs({ "busted", "luassert" }) do
 	table.insert(libs, vim.fs.abspath(("./lua-ls-plugins/%s/library"):format(dir)))

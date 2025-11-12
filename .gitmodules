@@ -1,13 +1,13 @@
 [submodule "tree-sitter-python"]
-	ignore = true
+	active = false
 	path = tree-sitter-python
 	url = https://github.com/tree-sitter/tree-sitter-python.git
 	branch = v0.25.0
 [submodule "lua-ls-plugins/busted"]
-	ignore = true
+	active = false
 	path = lua-ls-plugins/busted
 	url = https://github.com/LuaCATS/busted.git
 [submodule "lua-ls-plugins/luassert"]
-	ignore = true
+	active = false
 	path = lua-ls-plugins/luassert
 	url = https://github.com/LuaCATS/luassert.git
