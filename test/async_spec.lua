@@ -6,8 +6,8 @@ local a = require("python_tools._async")
 
 local async = tutils.async
 
-local MOCK_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures/mock-repo")
-local MOCK_SETUP_PY_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures/mock-setup-py-repo")
+local MOCK_REPO_PATH = tutils.fixtpath("mock-repo")
+local MOCK_SETUP_PY_REPO_PATH = tutils.fixtpath("mock-setup-py-repo")
 
 local TEST_CASES = {
 	{

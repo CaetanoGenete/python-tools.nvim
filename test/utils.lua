@@ -6,6 +6,11 @@ TEST_PATH = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
 
 local fixture_cache = {}
 
+--- Returns path relative to 'fixture path' for this test suite. Additional arguments will be
+--- concatenated using `vim.fs.joinpath`
+---
+---@vararg string
+---@return string
 function M.fixtpath(...)
 	return vim.fs.joinpath(TEST_PATH, "fixtures", ...)
 end
@@ -150,6 +155,32 @@ function M.tbl_subset(tbl, fields)
 	for _, field in ipairs(fields) do
 		result[field] = tbl[field]
 	end
+	return result
+end
+
+--- Executes `filepath` on remote Neovim server.
+---
+---@param channel integer Neovim process.
+---@param filepath string Path to Lua file to execute. This is relative to the 'rpc_scripts' fixture
+--- directory.
+---@vararg any Args to pass to lua file.
+---@return any
+function M.rpc_exec_luafile(channel, filepath, ...)
+	local file = io.open(M.fixtpath("rpc_scripts", filepath))
+	if file == nil then
+		error("Could not open script file: " .. file)
+	end
+
+	local ok_read, contents = pcall(file.read, file, "a")
+	if not ok_read then
+		io.close(file)
+	end
+
+	local ok_call, result = pcall(vim.rpcrequest, channel, "nvim_exec_lua", contents, { ... })
+	if not ok_call then
+		io.close(file)
+	end
+
 	return result
 end
 

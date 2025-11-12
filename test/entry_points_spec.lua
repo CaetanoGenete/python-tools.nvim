@@ -27,8 +27,8 @@ local function ep_def_fixture(...)
 	return fixt
 end
 
-local MOCK_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-repo")
-local MOCK_SETUP_PY_REPO_PATH = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-setup-py-repo")
+local MOCK_REPO_PATH = tutils.fixtpath("mock-repo")
+local MOCK_SETUP_PY_REPO_PATH = tutils.fixtpath("mock-setup-py-repo")
 
 local AENTRY_POINTS_CASES = {
 	{
@@ -155,7 +155,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 		for _, case in pairs(fixt) do
 			async(it, ("should find the correct location for `%s`"):format(case.name), function()
 				local actual = assert(atest_func(case, opts))
-				local expected_path = vim.fs.joinpath(TEST_PATH, "fixtures", case.rel_filepath)
+				local expected_path = tutils.fixtpath(case.rel_filepath)
 
 				assert.paths_same(expected_path, actual.filename)
 				assert.same(case.lineno, actual.lineno)

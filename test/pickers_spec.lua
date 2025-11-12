@@ -47,7 +47,7 @@ local PICKER_TEST_CASES = {
 		use_importlib = false,
 		group = nil,
 		python_path = nil,
-		search_dir = vim.fs.joinpath(TEST_PATH, "fixtures/mock-setup-py-repo"),
+		search_dir = tutils.fixtpath("mock-setup-py-repo"),
 		fixture = tutils.get_fixture("entry_points", "mock_setup_py_entry_points.json"),
 	},
 }
@@ -186,85 +186,35 @@ describe("find_entry_points", function()
 
 		-- Wait for the picker to become ready
 		assert.poll(function()
-			local result = vim.rpcrequest(
-				nvim,
-				"nvim_exec_lua",
-				[[
-					local entry = require("telescope.actions.state").get_selected_entry()
-					if entry == nil then
-						return nil
-					end
-
-					return true
-				]],
-				{}
-			)
-			return result ~= nil and result
+			local result = tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua")
+			return result ~= nil and result ~= vim.NIL
 		end, { interval = 15 })
 
 		-- If navigating faster than debounce duration, then nothing should be loaded!
 		for _ = 1, 3 do
 			vim.wait(picker_opts.debounce_duration_ms - 40)
-			local result = vim.rpcrequest(
-				nvim,
-				"nvim_exec_lua",
-				[[
-					local entry = require("telescope.actions.state").get_selected_entry()
-					if entry == nil then
-						return nil
-					end
+			local result = assert(tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua"))
 
-					return {
-						entry.lnum or "_no_value_",
-						entry.filename or "_no_value_",
-					}
-				]],
-				{}
-			)
-			assert.same({ "_no_value_", "_no_value_" }, result)
+			assert.is_nil(result.filename)
+			assert.is_nil(result.lnum)
+
 			vim.rpcrequest(nvim, "nvim_input", "<Up>")
 		end
 
-		local entries = assert(vim.rpcrequest(
-			nvim,
-			"nvim_exec_lua",
-			[[
-				local action_state = require("telescope.actions.state")
-				local buf = vim.api.nvim_get_current_buf()
-				local results = action_state.get_current_picker(buf).finder.results
-
-				return vim.tbl_map(function(x)
-					return {x.lnum or "_no_value_", x.filename or "_no_value_"}
-				end, results)
-			]],
-			{}
-		))
+		---@type EntryPointEntry[]
+		local entries = assert(tutils.rpc_exec_luafile(nvim, "picker_all_results.lua"))
 		assert.True(#entries > 0)
 
 		--- Check no entry-point entries have been loaded
 		for _, entry in ipairs(entries) do
-			assert.same({ "_no_value_", "_no_value_" }, entry)
+			assert.is_nil(entry.filename)
+			assert.is_nil(entry.lnum)
 		end
 
 		-- Check the entry-point will be loaded eventually.
 		assert.poll(function()
-			local result = vim.rpcrequest(
-				nvim,
-				"nvim_exec_lua",
-				[[
-					local result = require("telescope.actions.state").get_selected_entry()
-					if result == nil then
-						return nil
-					end
-
-					result = vim.deepcopy(result)
-					-- Functions cannot be sent over MsgPack
-					result["display"] = nil
-					return result
-				]],
-				{}
-			)
-			if result == nil or result.value == nil or result.value.name == nil then
+			local result = tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua")
+			if result == nil or result == vim.NIL then
 				return false
 			end
 
@@ -273,7 +223,7 @@ describe("find_entry_points", function()
 			end
 
 			local expected = fixt[result.value.name]
-			local expected_filename = vim.fs.joinpath(TEST_PATH, "fixtures", expected.rel_filepath)
+			local expected_filename = tutils.fixtpath(expected.rel_filepath)
 
 			return result.filename == expected_filename and result.lnum == expected.lineno
 		end, { timeout = 10000 })
@@ -283,7 +233,7 @@ describe("find_entry_points", function()
 		---@type EntryPointPickerOptions
 		local picker_opts = {
 			use_importlib = false,
-			search_dir = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-setup-py-repo"),
+			search_dir = tutils.fixtpath("mock-setup-py-repo"),
 			debounce_duration_ms = 500,
 			select_timeout_ms = 2000,
 		}
@@ -297,58 +247,25 @@ describe("find_entry_points", function()
 			{ picker_opts }
 		)
 
-		---@type EntryPointDef
+		---@type EntryPointEntry
 		local entry
-
 		assert.poll(function()
-			local resp = vim.rpcrequest(
-				nvim,
-				"nvim_exec_lua",
-				[[
-					local entry = require("telescope.actions.state").get_selected_entry()
-					if entry == nil then
-						return nil
-					end
-
-					return entry.value
-				]],
-				{}
-			)
-
-			if resp == nil then
-				return false
-			end
-			entry = resp
-
-			return entry ~= vim.NIL
+			entry = tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua")
+			return entry ~= nil and entry ~= vim.NIL
 		end)
 
 		tutils.log("Found entry: %s", entry)
 
-		local expected_entry = fixt[entry.name]
-		local expected_filename = vim.fs.joinpath(TEST_PATH, "fixtures", expected_entry.rel_filepath)
+		local expected_entry = fixt[entry.value.name]
+		local expected_filename = tutils.fixtpath(expected_entry.rel_filepath)
 
+		-- Verify current buffer isn't atached to the desired file.
 		assert.no.equal(expected_filename, vim.rpcrequest(nvim, "nvim_buf_get_name", 0))
 
-		-- For some reason sending '<CR>' doesn't seem to select the entry. Need to use the telescope
-		-- API instead.
-		vim.rpcrequest(
-			nvim,
-			"nvim_exec_lua",
-			[[
-				local action_state = require("telescope.actions.state")
-				local action = require("telescope.actions")
-
-				local buf = vim.api.nvim_get_current_buf()
-				action.select_default(action_state.get_current_picker(buf).prompt_bufnr)
-			]],
-			{}
-		)
+		tutils.rpc_exec_luafile(nvim, "picker_select.lua")
 
 		assert.poll(function()
-			local bufname = vim.rpcrequest(nvim, "nvim_buf_get_name", 0)
-			tutils.log("Comparing '%s' against '%s'", bufname, expected_filename)
-			return bufname == expected_filename
+			return vim.rpcrequest(nvim, "nvim_buf_get_name", 0) == expected_filename
 		end)
 	end)
 end)
