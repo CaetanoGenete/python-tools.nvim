@@ -16,13 +16,14 @@ local function sort_entry_points(entry_points)
 end
 
 local function ep_def_fixture(...)
-	local fixt = tutils.get_fixture(...)
+	local fixt = vim.tbl_values(tutils.get_fixture(...))
 
 	for _, value in ipairs(fixt) do
 		value["lineno"] = nil
 		value["rel_filepath"] = nil
 	end
 
+	sort_entry_points(fixt)
 	return fixt
 end
 
@@ -94,7 +95,7 @@ describe("List entry points tests -", function()
 				end)
 			end
 
-			assert.same(expected, actual)
+			assert.same(vim.tbl_values(expected), actual)
 		end)
 	end
 end)
@@ -151,7 +152,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 
 	local test_name = ("aentry_point_location tests, use_importlib=%s -"):format(opts.use_importlib)
 	describe(test_name, function()
-		for _, case in ipairs(fixt) do
+		for _, case in pairs(fixt) do
 			async(it, ("should find the correct location for `%s`"):format(case.name), function()
 				local actual = assert(atest_func(case, opts))
 				local expected_path = vim.fs.joinpath(TEST_PATH, "fixtures", case.rel_filepath)

@@ -6,10 +6,14 @@ TEST_PATH = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
 
 local fixture_cache = {}
 
+function M.fixtpath(...)
+	return vim.fs.joinpath(TEST_PATH, "fixtures", ...)
+end
+
 ---@vararg string
 ---@return table<any, any>
 function M.get_fixture(...)
-	local fixture_path = vim.fs.joinpath(TEST_PATH, "fixtures", ...)
+	local fixture_path = M.fixtpath(...)
 
 	local cached = fixture_cache[fixture_path]
 	if not cached then

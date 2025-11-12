@@ -1,16 +1,16 @@
-[
-  {
+{
+  "ep1": {
     "name": "ep1",
     "group": "console_scripts",
     "value": ["hello", "ep1"],
     "rel_filepath": "mock-setup-py-repo/hello.py",
     "lineno": 1
   },
-  {
+  "ep2": {
     "name": "ep2",
     "group": "other",
     "value": ["hello", "ep2"],
     "rel_filepath": "mock-setup-py-repo/hello.py",
     "lineno": 5
   }
-]
+}

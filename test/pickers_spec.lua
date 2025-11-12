@@ -59,7 +59,7 @@ describe("Test entry_points picker: select successful -", function()
 			return value.lineno ~= vim.NIL
 		end)
 
-		for _, expected in ipairs(fixt) do
+		for _, expected in pairs(fixt) do
 			it(("test %d - entry point '%s'"):format(test_num, expected.name), function()
 				tutils.log("find_entry_points opts: %s", opts)
 
@@ -149,10 +149,13 @@ describe("Test entry_points picker: send to quickfix -", function()
 	end
 end)
 
-describe("find_files", function()
+describe("find_entry_points", function()
 	local nvim
 
 	before_each(function()
+		-- Spawn a new Neovim process in embedded mode with a UI. This is necessary as
+		-- `find_entry_points` uses the previewer to lazy load entry-points. However, telescope won't
+		-- instantiate a previewer if no UI is active, or if the window cannot fit a previewer.
 		nvim = vim.fn.jobstart(
 			{ "nvim", "-u", "./scripts/minimal_init.lua", "--embed" },
 			{ rpc = true }
@@ -165,21 +168,43 @@ describe("find_files", function()
 	end)
 
 	it("should debounce selections", function()
-		local debounce_duration_ms = 200
+		---@type EntryPointPickerOptions
+		local picker_opts = {
+			debounce_duration_ms = 200,
+			-- Note: filtering, as this group has no error entry_points
+			group = "my.group",
+		}
+		local fixt = tutils.get_fixture("entry_points", "mock_entry_points.json")
 
 		-- Open picker
 		vim.rpcrequest(
 			nvim,
 			"nvim_exec_lua",
-			([[
-				require("python_tools.pickers").find_entry_points({debounce_duration_ms = %d})
-			]]):format(debounce_duration_ms),
-			{}
+			'require("python_tools.pickers").find_entry_points(...)',
+			{ picker_opts }
 		)
 
+		-- Wait for the picker to become ready
+		assert.poll(function()
+			local result = vim.rpcrequest(
+				nvim,
+				"nvim_exec_lua",
+				[[
+					local entry = require("telescope.actions.state").get_selected_entry()
+					if entry == nil then
+						return nil
+					end
+
+					return true
+				]],
+				{}
+			)
+			return result ~= nil and result
+		end, { interval = 15 })
+
 		-- If navigating faster than debounce duration, then nothing should be loaded!
-		for _ = 1, 5 do
-			vim.wait(debounce_duration_ms * 0.8)
+		for _ = 1, 3 do
+			vim.wait(picker_opts.debounce_duration_ms - 40)
 			local result = vim.rpcrequest(
 				nvim,
 				"nvim_exec_lua",
@@ -227,29 +252,49 @@ describe("find_files", function()
 				nvim,
 				"nvim_exec_lua",
 				[[
-					local entry = require("telescope.actions.state").get_selected_entry()
-					return {
-						entry.lnum or "_no_value_",
-						entry.filename or "_no_value_",
-					}
+					local result = require("telescope.actions.state").get_selected_entry()
+					if result == nil then
+						return nil
+					end
+
+					result = vim.deepcopy(result)
+					-- Functions cannot be sent over MsgPack
+					result["display"] = nil
+					return result
 				]],
 				{}
 			)
-			return result ~= nil and result[1] ~= "_no_value_" and result[2] ~= "_no_value_"
+			if result == nil or result.value == nil or result.value.name == nil then
+				return false
+			end
+
+			if result.filename ~= nil then
+				result.filename = vim.fs.normalize(result.filename)
+			end
+
+			local expected = fixt[result.value.name]
+			local expected_filename = vim.fs.joinpath(TEST_PATH, "fixtures", expected.rel_filepath)
+
+			return result.filename == expected_filename and result.lnum == expected.lineno
 		end, { timeout = 10000 })
 	end)
 
 	it("will still select if debouncing", function()
-		local debounce_duration_ms = 200
+		---@type EntryPointPickerOptions
+		local picker_opts = {
+			use_importlib = false,
+			search_dir = vim.fs.joinpath(TEST_PATH, "fixtures", "mock-setup-py-repo"),
+			debounce_duration_ms = 500,
+			select_timeout_ms = 2000,
+		}
+		local fixt = tutils.get_fixture("entry_points", "mock_setup_py_entry_points.json")
 
 		-- Open picker
 		vim.rpcrequest(
 			nvim,
 			"nvim_exec_lua",
-			([[
-				require("python_tools.pickers").find_entry_points({debounce_duration_ms = %d})
-			]]):format(debounce_duration_ms),
-			{}
+			'require("python_tools.pickers").find_entry_points(...)',
+			{ picker_opts }
 		)
 
 		---@type EntryPointDef
@@ -278,8 +323,15 @@ describe("find_files", function()
 			return entry ~= vim.NIL
 		end)
 
-		assert.equal("", vim.rpcrequest(nvim, "nvim_buf_get_name", 0))
+		tutils.log("Found entry: %s", entry)
 
+		local expected_entry = fixt[entry.name]
+		local expected_filename = vim.fs.joinpath(TEST_PATH, "fixtures", expected_entry.rel_filepath)
+
+		assert.no.equal(expected_filename, vim.rpcrequest(nvim, "nvim_buf_get_name", 0))
+
+		-- For some reason sending '<CR>' doesn't seem to select the entry. Need to use the telescope
+		-- API instead.
 		vim.rpcrequest(
 			nvim,
 			"nvim_exec_lua",
@@ -294,8 +346,9 @@ describe("find_files", function()
 		)
 
 		assert.poll(function()
-			local result = vim.rpcrequest(nvim, "nvim_buf_get_name", 0)
-			return result ~= nil and #result > 0
+			local bufname = vim.rpcrequest(nvim, "nvim_buf_get_name", 0)
+			tutils.log("Comparing '%s' against '%s'", bufname, expected_filename)
+			return bufname == expected_filename
 		end)
 	end)
 end)
