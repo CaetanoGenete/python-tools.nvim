@@ -8,18 +8,34 @@ local fixture_cache = {}
 ---@vararg string
 ---@return string
 function M.path(...)
-	return vim.fs.abspath(vim.fs.joinpath("test/fixtures/", ...))
+	return vim.fs.normalize(vim.fs.abspath(vim.fs.joinpath("test/fixtures/", ...)))
 end
 
----@vararg string
----@return table<any, any>
+--- Reads file relative to fixture directory.
+---
+--- If extension ends with .json, the contents will be deserialised into a lua table.
+---
+--- Subsequent calls with the same paths will be cached.
+---
+---@vararg string path segments to file, will be concated using `vim.fs.joinpath`.
+---@return any
 function M.get(...)
 	local fixture_path = M.path(...)
 
 	local cached = fixture_cache[fixture_path]
 	if not cached then
-		local fixture_file = assert(io.open(fixture_path, "rb"))
-		local fixture = vim.json.decode(fixture_file:read("all"))
+		local file = assert(io.open(fixture_path, "rb"))
+
+		local ok, fixture = pcall(file.read, file, "a")
+		io.close(file)
+
+		if not ok then
+			error(fixture)
+		end
+
+		if vim.endswith(fixture_path, ".json") then
+			fixture = vim.json.decode(fixture)
+		end
 
 		fixture_cache[fixture_path] = fixture
 		cached = fixture

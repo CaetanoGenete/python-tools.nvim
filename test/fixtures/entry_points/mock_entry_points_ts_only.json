@@ -24,7 +24,7 @@
     "name": "ep5",
     "group": "console_scripts",
     "value": ["hello", "no_such_function"],
-    "rel_filepath": "mock-repo/src/hello.py",
+    "rel_filepath": null,
     "lineno": null
   },
   "ep6": {

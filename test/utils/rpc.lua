@@ -10,24 +10,8 @@ local M = {}
 ---@vararg any Args to pass to lua file.
 ---@return any
 function M.exec_lua(channel, filepath, ...)
-	local file = io.open(fixt.path("rpc_scripts", filepath))
-	if file == nil then
-		error("Could not open script file: " .. file)
-	end
-
-	local ok_read, contents = pcall(file.read, file, "a")
-	if not ok_read then
-		io.close(file)
-		error("Failed to read file!")
-	end
-
-	local ok_call, result = pcall(vim.rpcrequest, channel, "nvim_exec_lua", contents, { ... })
-	if not ok_call then
-		io.close(file)
-		error("Failed to make RPC request!")
-	end
-
-	return result
+	local script = fixt.get("rpc_scripts", filepath)
+	return vim.rpcrequest(channel, "nvim_exec_lua", script, { ... })
 end
 
 return M
