@@ -1,6 +1,21 @@
 name: Tests
 on:
   pull_request:
+    paths-ignore:
+      - ./README.md
+      - ./dockerfile
+      - ./.editorconfig
+      - ./stylua.toml
+      - ./docs/**
+    branches:
+      - master
+  push:
+    paths-ignore:
+      - ./README.md
+      - ./dockerfile
+      - ./.editorconfig
+      - ./stylua.toml
+      - ./docs/**
     branches:
       - master
 jobs:

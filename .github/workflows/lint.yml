@@ -1,7 +1,19 @@
 name: Lint
-
 on:
   pull_request:
+    paths-ignore:
+      - ./README.md
+      - ./dockerfile
+      - ./.editorconfig
+      - ./docs/**
+    branches:
+      - master
+  push:
+    paths-ignore:
+      - ./README.md
+      - ./dockerfile
+      - ./.editorconfig
+      - ./docs/**
     branches:
       - master
 jobs:
