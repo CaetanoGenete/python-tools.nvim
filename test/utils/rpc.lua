@@ -2,7 +2,7 @@ local fixt = require("test.utils.fixt")
 
 local M = {}
 
---- Executes `filepath` on remote Neovim server.
+--- Executes Lua script at `filepath` on remote Neovim server.
 ---
 ---@param channel integer Neovim process.
 ---@param filepath string Path to Lua file to execute. This is relative to the 'rpc_scripts' fixture
