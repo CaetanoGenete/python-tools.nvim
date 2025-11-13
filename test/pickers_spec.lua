@@ -250,7 +250,6 @@ describe("find_entry_points", function()
 			entry = tutils.rpc.exec_lua(nvim, "picker_current_selection.lua")
 			return entry ~= nil and entry ~= vim.NIL
 		end)
-
 		tutils.log("Found entry: %s", entry)
 
 		local expected_entry = fixt[entry.value.name]
@@ -262,7 +261,7 @@ describe("find_entry_points", function()
 		tutils.rpc.exec_lua(nvim, "picker_select.lua")
 
 		assert.poll(function()
-			return vim.rpcrequest(nvim, "nvim_buf_get_name", 0) == expected_filename
+			return expected_filename == vim.rpcrequest(nvim, "nvim_buf_get_name", 0)
 		end)
 	end)
 end)

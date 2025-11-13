@@ -82,19 +82,17 @@ return function(options)
 				.. failureMessage(failure)
 		end
 
-		local out_path = failure.element.stdout_file
-		local stdout = ""
-		if out_path ~= nil then
-			local out_file = io.open(out_path, "r")
-			if out_file ~= nil then
-				stdout = vim.trim(out_file:read("all"))
-				out_file:close()
-			end
-			os.remove(out_path)
+		---@type file*
+		local out_file = failure.element.output_file
+
+		local output = ""
+		if out_file ~= nil then
+			out_file:seek("set", 0)
+			output = vim.trim(out_file:read("*a"))
 		end
 
-		if #stdout > 0 then
-			string = string .. "\n\nconsole output:\n" .. stdout
+		if #output > 0 then
+			string = string .. "\n\nconsole output:\n" .. output
 		else
 			string = string .. "\n\n(No console output)"
 		end
@@ -166,18 +164,18 @@ return function(options)
 	end
 
 	handler.testStart = function(element)
-		local out_file = os.tmpname()
-		element.stdout_file = out_file
-		redirect.redirect(out_file)
+		local out_file = io.tmpfile()
+		element.output_file = out_file
+
+		io.flush()
+		element.out_state = redirect.redirect(io.stdout, out_file)
+		element.err_state = redirect.redirect(io.stderr, out_file)
 	end
 
 	handler.testEnd = function(element, _, status, _)
-		redirect.recover()
-
-		if not vim.list_contains({ "failure", "error" }, status) then
-			-- Will discard others later in error-handler
-			os.remove(element.stdout_file)
-		end
+		io.flush()
+		redirect.recover(element.out_state)
+		redirect.recover(element.err_state)
 
 		if not options.deferPrint then
 			local string = successDot

@@ -16,7 +16,7 @@ if(NOT TARGET Lua::Lua)
 endif()
 
 add_library(redirect SHARED ./src/redirect.c)
-target_compile_definitions(redirect PRIVATE _CRT_SECURE_NO_WARNINGS)
+target_compile_definitions(redirect PRIVATE _CRT_NONSTDC_NO_WARNINGS)
 target_link_libraries(redirect PRIVATE Lua::Lua)
 
 install(TARGETS redirect)
