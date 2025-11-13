@@ -24,11 +24,11 @@ local TEST_CASES = {
 	},
 }
 
-describe("Test findfile -", function()
+describe("findfile", function()
 	for test_num, test_case in ipairs(TEST_CASES) do
 		local target = vim.fs.basename(test_case.expected)
 
-		async(it, ("Test case %d"):format(test_num, test_case), function()
+		async(it, ("should succeed (case %d)"):format(test_num), function()
 			tutils.log("Test case: %s", test_case)
 
 			local actual = assert(a.findfile(test_case.start, target))

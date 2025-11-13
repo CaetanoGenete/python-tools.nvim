@@ -52,7 +52,7 @@ local PICKER_TEST_CASES = {
 	},
 }
 
-describe("Test entry_points picker: select successful -", function()
+describe("find_entry_points actions", function()
 	for test_num, opts in ipairs(PICKER_TEST_CASES) do
 		-- Skip expected failing entries
 		local fixt = vim.fn.filter(opts.fixture, function(_, value)
@@ -60,7 +60,7 @@ describe("Test entry_points picker: select successful -", function()
 		end)
 
 		for _, expected in pairs(fixt) do
-			it(("test %d - entry point '%s'"):format(test_num, expected.name), function()
+			it(("should succeed to select '%s' (case %d)"):format(expected.name, test_num), function()
 				tutils.log("find_entry_points opts: %s", opts)
 
 				pickers.find_entry_points(opts)
@@ -75,12 +75,12 @@ describe("Test entry_points picker: select successful -", function()
 	end
 end)
 
-describe("Test entry_points picker: select failure -", function()
+describe("find_entry_points actions", function()
 	before_each(function()
 		vim.fn.execute("messages clear", "silent")
 	end)
 
-	it("ep5", function()
+	it("should fail to select ep5", function()
 		pickers.find_entry_points()
 
 		local picker = wait_for_picker()
@@ -115,9 +115,9 @@ local QFLIST_TEST_CASES = {
 	},
 }
 
-describe("Test entry_points picker: send to quickfix -", function()
+describe("find_entry_points actions", function()
 	for test_num, case in ipairs(QFLIST_TEST_CASES) do
-		it(("Should send all entries to '%s' list"):format(case.list), function()
+		it(("should be able to send all entries to the '%s' list"):format(case.list), function()
 			tutils.log("Test case %d: %s", test_num, case)
 
 			pickers.find_entry_points()
@@ -151,7 +151,7 @@ describe("find_entry_points", function()
 
 	before_each(function()
 		-- Spawn a new Neovim process in embedded mode with a UI. This is necessary as
-		-- `find_entry_points` uses the previewer to lazy load entry-points. However, telescope won't
+		-- `find_entry_points` uses the previewer to lazy load entry-points. However, Telescope won't
 		-- instantiate a previewer if no UI is active, or if the window cannot fit a previewer.
 		nvim = vim.fn.jobstart(
 			{ "nvim", "-u", "./scripts/minimal_init.lua", "--embed" },
@@ -181,13 +181,13 @@ describe("find_entry_points", function()
 			{ picker_opts }
 		)
 
-		-- Wait for the picker to become ready
+		-- Wait for the picker to become ready.
 		assert.poll(function()
 			local result = tutils.rpc.exec_lua(nvim, "picker_current_selection.lua")
 			return result ~= nil and result ~= vim.NIL
 		end, { interval = 15 })
 
-		-- If navigating faster than debounce duration, then nothing should be loaded!
+		-- If navigating faster than debounce duration nothing should be loaded!
 		for _ = 1, 3 do
 			vim.wait(picker_opts.debounce_duration_ms - 40)
 			local result = assert(tutils.rpc.exec_lua(nvim, "picker_current_selection.lua"))
@@ -202,13 +202,13 @@ describe("find_entry_points", function()
 		local entries = assert(tutils.rpc.exec_lua(nvim, "picker_all_results.lua"))
 		assert.True(#entries > 0)
 
-		--- Check no entry-point entries have been loaded
+		-- Check no entry-point entries have been loaded.
 		for _, entry in ipairs(entries) do
 			assert.is_nil(entry.filename)
 			assert.is_nil(entry.lnum)
 		end
 
-		-- Check the entry-point will be loaded eventually.
+		-- Check the entry-point will be loaded eventually if user keeps it selected.
 		assert.poll(function()
 			local result = tutils.rpc.exec_lua(nvim, "picker_current_selection.lua")
 			if result == nil or result == vim.NIL then

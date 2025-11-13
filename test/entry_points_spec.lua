@@ -74,9 +74,9 @@ local AENTRY_POINTS_CASES = {
 	},
 }
 
-describe("List entry points tests -", function()
+describe("aentry_points_*", function()
 	for test_num, case in ipairs(AENTRY_POINTS_CASES) do
-		async(it, ("test case %d"):format(test_num), function()
+		async(it, ("should succeed (case %d)"):format(test_num), function()
 			tutils.log("Test case: %s", case)
 
 			local actual
@@ -100,8 +100,8 @@ describe("List entry points tests -", function()
 	end
 end)
 
-describe("aentry_points_from_project tests -", function()
-	async(it, "should correctly list all available entry_points from mock-setup-py-repo", function()
+describe("aentry_points_from_project", function()
+	async(it, "should list all entry_points from mock-setup-py-repo", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
 		local actual = assert(ep.aentry_points_from_setuppy(search_dir))
 
@@ -150,7 +150,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 		return value.lineno ~= vim.NIL
 	end)
 
-	local test_name = ("aentry_point_location tests, use_importlib=%s -"):format(opts.use_importlib)
+	local test_name = ("aentry_point_location_* importlib=%s"):format(opts.use_importlib)
 	describe(test_name, function()
 		for _, case in pairs(fixt) do
 			async(it, ("should find the correct location for `%s`"):format(case.name), function()
@@ -162,7 +162,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 			end)
 		end
 
-		async(it, "should fail for `ep5`", function()
+		async(it, "should fail for ep5", function()
 			local def = {
 				name = "ep5",
 				group = "console_scripts",
