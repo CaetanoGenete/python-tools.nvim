@@ -83,18 +83,21 @@ return function(options)
 		end
 
 		local out_path = failure.element.stdout_file
-		local out_file = io.open(out_path, "r")
-		if out_file ~= nil then
-			local stdout = vim.trim(out_file:read("all"))
-			out_file:close()
-
-			if #stdout > 0 then
-				string = string .. "\n\nconsole output:\n" .. stdout
-			else
-				string = string .. "\n\n(No console output)"
+		local stdout = ""
+		if out_path ~= nil then
+			local out_file = io.open(out_path, "r")
+			if out_file ~= nil then
+				stdout = vim.trim(out_file:read("all"))
+				out_file:close()
 			end
+			os.remove(out_path)
 		end
-		os.remove(out_path)
+
+		if #stdout > 0 then
+			string = string .. "\n\nconsole output:\n" .. stdout
+		else
+			string = string .. "\n\n(No console output)"
+		end
 
 		if options.verbose and failure.trace and failure.trace.traceback then
 			string = string .. "\n" .. failure.trace.traceback
