@@ -1,7 +1,7 @@
 ---@module "luassert"
 ---@module "busted"
 
-require("test.asserts")
+require("test.utils.asserts")
 
 local tutils = require("test.utils")
 local pickers = require("python_tools.pickers")
@@ -41,14 +41,14 @@ local PICKER_TEST_CASES = {
 		group = nil,
 		python_path = nil,
 		search_dir = nil,
-		fixture = tutils.get_fixture("entry_points", "mock_entry_points.json"),
+		fixture = tutils.fixt.get("entry_points", "mock_entry_points.json"),
 	},
 	{
 		use_importlib = false,
 		group = nil,
 		python_path = nil,
-		search_dir = tutils.fixtpath("mock-setup-py-repo"),
-		fixture = tutils.get_fixture("entry_points", "mock_setup_py_entry_points.json"),
+		search_dir = tutils.fixt.path("mock-setup-py-repo"),
+		fixture = tutils.fixt.get("entry_points", "mock_setup_py_entry_points.json"),
 	},
 }
 
@@ -69,10 +69,7 @@ describe("Test entry_points picker: select successful -", function()
 				search_selection(picker, expected.name)
 
 				actions.select_default(picker.prompt_bufnr)
-				assert.paths_same(
-					vim.fs.joinpath(TEST_PATH, "fixtures", expected.rel_filepath),
-					vim.api.nvim_buf_get_name(0)
-				)
+				assert.paths_same(tutils.fixt.path(expected.rel_filepath), vim.api.nvim_buf_get_name(0))
 			end)
 		end
 	end
@@ -107,12 +104,12 @@ end
 
 local QFLIST_TEST_CASES = {
 	{
-		fixture = tutils.get_fixture("picker-actions", "send_all_to_qflist.json"),
+		fixture = tutils.fixt.get("picker-actions", "send_all_to_qflist.json"),
 		action = actions.send_to_qflist,
 		list = "qf",
 	},
 	{
-		fixture = tutils.get_fixture("picker-actions", "send_all_to_loclist.json"),
+		fixture = tutils.fixt.get("picker-actions", "send_all_to_loclist.json"),
 		action = actions.send_to_loclist,
 		list = "loc",
 	},
@@ -174,7 +171,7 @@ describe("find_entry_points", function()
 			-- Note: filtering, as this group has no error entry_points
 			group = "my.group",
 		}
-		local fixt = tutils.get_fixture("entry_points", "mock_entry_points.json")
+		local fixt = tutils.fixt.get("entry_points", "mock_entry_points.json")
 
 		-- Open picker
 		vim.rpcrequest(
@@ -186,14 +183,14 @@ describe("find_entry_points", function()
 
 		-- Wait for the picker to become ready
 		assert.poll(function()
-			local result = tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua")
+			local result = tutils.rpc.exec_lua(nvim, "picker_current_selection.lua")
 			return result ~= nil and result ~= vim.NIL
 		end, { interval = 15 })
 
 		-- If navigating faster than debounce duration, then nothing should be loaded!
 		for _ = 1, 3 do
 			vim.wait(picker_opts.debounce_duration_ms - 40)
-			local result = assert(tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua"))
+			local result = assert(tutils.rpc.exec_lua(nvim, "picker_current_selection.lua"))
 
 			assert.is_nil(result.filename)
 			assert.is_nil(result.lnum)
@@ -202,7 +199,7 @@ describe("find_entry_points", function()
 		end
 
 		---@type EntryPointEntry[]
-		local entries = assert(tutils.rpc_exec_luafile(nvim, "picker_all_results.lua"))
+		local entries = assert(tutils.rpc.exec_lua(nvim, "picker_all_results.lua"))
 		assert.True(#entries > 0)
 
 		--- Check no entry-point entries have been loaded
@@ -213,7 +210,7 @@ describe("find_entry_points", function()
 
 		-- Check the entry-point will be loaded eventually.
 		assert.poll(function()
-			local result = tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua")
+			local result = tutils.rpc.exec_lua(nvim, "picker_current_selection.lua")
 			if result == nil or result == vim.NIL then
 				return false
 			end
@@ -223,7 +220,7 @@ describe("find_entry_points", function()
 			end
 
 			local expected = fixt[result.value.name]
-			local expected_filename = tutils.fixtpath(expected.rel_filepath)
+			local expected_filename = tutils.fixt.path(expected.rel_filepath)
 
 			return result.filename == expected_filename and result.lnum == expected.lineno
 		end, { timeout = 10000 })
@@ -233,11 +230,11 @@ describe("find_entry_points", function()
 		---@type EntryPointPickerOptions
 		local picker_opts = {
 			use_importlib = false,
-			search_dir = tutils.fixtpath("mock-setup-py-repo"),
+			search_dir = tutils.fixt.path("mock-setup-py-repo"),
 			debounce_duration_ms = 500,
 			select_timeout_ms = 2000,
 		}
-		local fixt = tutils.get_fixture("entry_points", "mock_setup_py_entry_points.json")
+		local fixt = tutils.fixt.get("entry_points", "mock_setup_py_entry_points.json")
 
 		-- Open picker
 		vim.rpcrequest(
@@ -250,19 +247,19 @@ describe("find_entry_points", function()
 		---@type EntryPointEntry
 		local entry
 		assert.poll(function()
-			entry = tutils.rpc_exec_luafile(nvim, "picker_current_selection.lua")
+			entry = tutils.rpc.exec_lua(nvim, "picker_current_selection.lua")
 			return entry ~= nil and entry ~= vim.NIL
 		end)
 
 		tutils.log("Found entry: %s", entry)
 
 		local expected_entry = fixt[entry.value.name]
-		local expected_filename = tutils.fixtpath(expected_entry.rel_filepath)
+		local expected_filename = tutils.fixt.path(expected_entry.rel_filepath)
 
 		-- Verify current buffer isn't atached to the desired file.
 		assert.no.equal(expected_filename, vim.rpcrequest(nvim, "nvim_buf_get_name", 0))
 
-		tutils.rpc_exec_luafile(nvim, "picker_select.lua")
+		tutils.rpc.exec_lua(nvim, "picker_select.lua")
 
 		assert.poll(function()
 			return vim.rpcrequest(nvim, "nvim_buf_get_name", 0) == expected_filename

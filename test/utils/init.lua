@@ -1,40 +1,4 @@
--- IMPORTANT: this module MUST be at the root of the `/test` directory!
 local M = {}
-
---- Full path to the `/test` directory.
-TEST_PATH = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
-
-local fixture_cache = {}
-
---- Returns path relative to 'fixture path' for this test suite. Additional arguments will be
---- concatenated using `vim.fs.joinpath`
----
----@vararg string
----@return string
-function M.fixtpath(...)
-	return vim.fs.joinpath(TEST_PATH, "fixtures", ...)
-end
-
----@vararg string
----@return table<any, any>
-function M.get_fixture(...)
-	local fixture_path = M.fixtpath(...)
-
-	local cached = fixture_cache[fixture_path]
-	if not cached then
-		local fixture_file = assert(io.open(fixture_path, "rb"))
-		local fixture = vim.json.decode(fixture_file:read("all"))
-
-		fixture_cache[fixture_path] = fixture
-		cached = fixture
-	end
-
-	return vim.deepcopy(cached)
-end
-
-function M.clear_fixture_cache()
-	fixture_cache = {}
-end
 
 local ASYNC_TEST_TIMEOUT_MS = 5000
 local ASYNC_TEST_INTERVAL_MS = 20
@@ -158,30 +122,7 @@ function M.tbl_subset(tbl, fields)
 	return result
 end
 
---- Executes `filepath` on remote Neovim server.
----
----@param channel integer Neovim process.
----@param filepath string Path to Lua file to execute. This is relative to the 'rpc_scripts' fixture
---- directory.
----@vararg any Args to pass to lua file.
----@return any
-function M.rpc_exec_luafile(channel, filepath, ...)
-	local file = io.open(M.fixtpath("rpc_scripts", filepath))
-	if file == nil then
-		error("Could not open script file: " .. file)
-	end
-
-	local ok_read, contents = pcall(file.read, file, "a")
-	if not ok_read then
-		io.close(file)
-	end
-
-	local ok_call, result = pcall(vim.rpcrequest, channel, "nvim_exec_lua", contents, { ... })
-	if not ok_call then
-		io.close(file)
-	end
-
-	return result
-end
+M.fixt = require("test.utils.fixt")
+M.rpc = require("test.utils.rpc")
 
 return M

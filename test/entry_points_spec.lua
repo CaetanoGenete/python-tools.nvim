@@ -1,7 +1,7 @@
 ---@module "luassert"
 ---@module "busted"
 
-require("test.asserts")
+require("test.utils.asserts")
 
 local tutils = require("test.utils")
 local ep = require("python_tools.meta.entry_points")
@@ -16,7 +16,7 @@ local function sort_entry_points(entry_points)
 end
 
 local function ep_def_fixture(...)
-	local fixt = vim.tbl_values(tutils.get_fixture(...))
+	local fixt = vim.tbl_values(tutils.fixt.get(...))
 
 	for _, value in ipairs(fixt) do
 		value["lineno"] = nil
@@ -27,8 +27,8 @@ local function ep_def_fixture(...)
 	return fixt
 end
 
-local MOCK_REPO_PATH = tutils.fixtpath("mock-repo")
-local MOCK_SETUP_PY_REPO_PATH = tutils.fixtpath("mock-setup-py-repo")
+local MOCK_REPO_PATH = tutils.fixt.path("mock-repo")
+local MOCK_SETUP_PY_REPO_PATH = tutils.fixt.path("mock-setup-py-repo")
 
 local AENTRY_POINTS_CASES = {
 	{
@@ -123,12 +123,12 @@ end)
 local AENTRY_POINT_LOCATION_CASES = {
 	{
 		use_importlib = true,
-		fixture = tutils.get_fixture("entry_points", "mock_entry_points.json"),
+		fixture = tutils.fixt.get("entry_points", "mock_entry_points.json"),
 	},
 	{
 		use_importlib = false,
 		opt = MOCK_REPO_PATH,
-		fixture = tutils.get_fixture("entry_points", "mock_entry_points_ts_only.json"),
+		fixture = tutils.fixt.get("entry_points", "mock_entry_points_ts_only.json"),
 	},
 }
 
@@ -155,7 +155,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 		for _, case in pairs(fixt) do
 			async(it, ("should find the correct location for `%s`"):format(case.name), function()
 				local actual = assert(atest_func(case, opts))
-				local expected_path = tutils.fixtpath(case.rel_filepath)
+				local expected_path = tutils.fixt.path(case.rel_filepath)
 
 				assert.paths_same(expected_path, actual.filename)
 				assert.same(case.lineno, actual.lineno)

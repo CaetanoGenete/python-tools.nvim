@@ -6,8 +6,8 @@ local a = require("python_tools._async")
 
 local async = tutils.async
 
-local MOCK_REPO_PATH = tutils.fixtpath("mock-repo")
-local MOCK_SETUP_PY_REPO_PATH = tutils.fixtpath("mock-setup-py-repo")
+local MOCK_REPO_PATH = tutils.fixt.path("mock-repo")
+local MOCK_SETUP_PY_REPO_PATH = tutils.fixt.path("mock-setup-py-repo")
 
 local TEST_CASES = {
 	{
@@ -38,7 +38,7 @@ describe("Test findfile -", function()
 
 	local bad_file = "non-existant-file.random-ext"
 	async(it, ("should fail to find `%s`"):format(bad_file), function()
-		local match, err = a.findfile(TEST_PATH, bad_file)
+		local match, err = a.findfile("./test/", bad_file)
 		assert.is_nil(match)
 		assert.no.is_nil(err)
 	end)

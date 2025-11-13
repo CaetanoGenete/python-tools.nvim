@@ -4,6 +4,7 @@ local rtps = {
 	"./lua/?.lua",
 	"./lua/?/init.lua",
 	"?.lua",
+	"?/init.lua",
 }
 
 local lua_path = os.getenv("LUA_PATH")

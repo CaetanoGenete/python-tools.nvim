@@ -6,13 +6,13 @@ local results = action_state.get_current_picker(buf).finder.results
 ---@generic T
 ---@param value T
 ---@return T?
-local function copy_serialisable(value)
+local function deepcopy_serialisable(value)
 	local tvalue = type(value)
 
 	if tvalue == "table" then
 		local new_tbl = {}
 		for k, v in pairs(value) do
-			new_tbl[k] = copy_serialisable(v)
+			new_tbl[k] = deepcopy_serialisable(v)
 		end
 		return new_tbl
 	end
@@ -24,4 +24,4 @@ local function copy_serialisable(value)
 	return value
 end
 
-return vim.tbl_map(copy_serialisable, results)
+return vim.tbl_map(deepcopy_serialisable, results)
