@@ -5,11 +5,12 @@ return {
 		lpath = "lua/?.lua;lua/?/init.lua;?.lua;?/init.lua",
 		cpath = "build/install/bin/?.dll;build/install/lib/?.so;build/install/lib/lib?.so",
 		lua = "nvim --headless --noplugin -u ./scripts/minimal_init.lua -l",
-		output = "test.busted.output_handler",
 		ROOT = { "./test/" },
 	},
-	default = {},
+	default = {
+		output = "test.busted.output_handler",
+	},
 	ci = {
-		output = "TAP",
+		output = "test.busted.output_handler",
 	},
 }
