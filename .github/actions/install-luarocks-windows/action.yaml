@@ -31,10 +31,8 @@ runs:
       if: steps.cache-luarocks.outputs.cache-hit != 'true'
       shell: pwsh
       working-directory: ../luarocks
-      run: >
-        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q
-          /LUA "${{ github.workspace }}/${{ inputs.luaPath }}"
-          /P "${{ github.workspace }}/${{ inputs.installPath }}"
+      run: |
+        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA "${{ github.workspace }}/${{ inputs.luaPath }}" /P "${{ github.workspace }}/${{ inputs.installPath }}"
 
     - name: Set paths
       shell: cmd
