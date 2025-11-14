@@ -15,11 +15,10 @@ ENV PATH=${PATH}:/root/.local/bin/
 
 WORKDIR /home/project/
 
-RUN --mount=type=bind,source=./python-tools.nvim-0.2-0.rockspec,target=./python-tools.nvim-0.2-0.rockspec \
+RUN --mount=type=bind,source=./python-tools.nvim-scm-1.rockspec,target=./python-tools.nvim-scm-1.rockspec \
 	--mount=type=bind,source=./.busted,target=./.busted \
 	--mount=type=bind,source=./scripts/minimal_init.lua,target=./scripts/minimal_init.lua \
-	luarocks install --deps-only ./python-tools.nvim-0.2-0.rockspec \
-	&& luarocks test --prepare ./python-tools.nvim-0.2-0.rockspec
+	luarocks test --prepare
 
 COPY . .
 

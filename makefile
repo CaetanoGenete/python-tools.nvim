@@ -69,3 +69,8 @@ test-all: $(TEST_TARGETS)
 
 .PHONY: test-dev
 test-dev: check-types check-formatting test-3.12
+
+.PHONY: dev-container
+dev-container:
+	docker build -t pytools .
+	docker run -it pytools
