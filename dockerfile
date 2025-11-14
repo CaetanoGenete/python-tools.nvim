@@ -15,9 +15,6 @@ ENV PATH=${PATH}:/root/.local/bin/
 
 WORKDIR /home/project/
 
-RUN wget https://raw.githubusercontent.com/nvim-telescope/telescope.nvim/refs/heads/master/telescope.nvim-scm-1.rockspec && \
-	luarocks install telescope.nvim-scm-1.rockspec
-
 RUN --mount=type=bind,source=./python-tools.nvim-0.2-0.rockspec,target=./python-tools.nvim-0.2-0.rockspec \
 	--mount=type=bind,source=./.busted,target=./.busted \
 	--mount=type=bind,source=./scripts/minimal_init.lua,target=./scripts/minimal_init.lua \

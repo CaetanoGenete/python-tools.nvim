@@ -21,29 +21,20 @@ runs:
         path: |
           ${{ inputs.installPath }}
 
-    - name: Did cache hit?
-      shell: pwsh
-      env:
-        CACHE_VALUE: ${{ steps.cache-luarocks.outputs.cache-hit }}
-      run: echo "Hit=${Env:CACHE_VALUE}"
-
     - name: Download luarocks
       if: steps.cache-luarocks.outputs.cache-hit != 'true'
       shell: pwsh
-      env:
-        LUAROCKS_TAG: v${{ inputs.luarocksVersion }}
       run: |
-        git clone --depth 1 --branch ${Env:LUAROCKS_TAG} https://github.com/luarocks/luarocks.git ../luarocks/
+        git clone --depth 1 --branch "v${{ inputs.luarocksVersion }}" https://github.com/luarocks/luarocks.git ../luarocks/
 
     - name: Compile luarocks
       if: steps.cache-luarocks.outputs.cache-hit != 'true'
       shell: pwsh
-      env:
-        LUA_DIR: ${{ github.workspace }}/${{ inputs.luaPath }}
-        LUAROCKS_INSTALL_DIR: ${{ github.workspace }}/${{ inputs.installPath }}
       working-directory: ../luarocks
       run: |
-        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA ${Env:LUA_DIR} /P ${Env:LUAROCKS_INSTALL_DIR}
+        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q`
+          /LUA "${{ github.workspace }}/${{ inputs.luaPath }}"`
+          /P "${{ github.workspace }}/${{ inputs.installPath }}"
 
     - name: Set paths
       shell: cmd

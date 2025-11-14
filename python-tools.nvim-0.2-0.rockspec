@@ -10,7 +10,7 @@ dependencies = {
 	"lua>=5.1",
 }
 test_dependencies = {
-	"telescope.nvim",
+	"telescope.nvim==0.1.9-1",
 }
 build = {
 	type = "builtin",
