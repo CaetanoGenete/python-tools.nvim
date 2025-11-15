@@ -79,7 +79,7 @@ function M.aentry_points_importlib(options)
 	return result, "Could not find entry_points"
 end
 
----@class EntryPointsFromSetuppyOptions
+---@class EntryPointsSetuppyOptions
 --- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
 ---
 --- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
@@ -109,12 +109,12 @@ end
 ---@async
 ---@nodiscard
 ---@param project_file string Path to *setup.py*.
----@param options EntryPointsFromSetuppyOptions? Optional filter.
+---@param options EntryPointsSetuppyOptions? Optional filter.
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
-function M.aentry_points_from_setuppy(project_file, options)
+function M.aentry_points_setuppy(project_file, options)
 	options = options or {}
 
 	local python_path = options.python_path or pyutils.default_path()
@@ -132,7 +132,7 @@ local function afind_project_file(search_dir)
 	return project_file, find_err
 end
 
----@class EntryPointsTSOptions : EntryPointsFromSetuppyOptions
+---@class EntryPointsTSOptions : EntryPointsSetuppyOptions
 --- When looking for entry-points, this and every parent directory will be scanned to find either
 --- `pyproject.toml` or `setup.py`. If the search is successful, the entry-points will from therein
 --- be extracted.
@@ -178,7 +178,7 @@ function M.aentry_points(options)
 	end
 
 	if vim.endswith(project_file, ".py") then
-		return M.aentry_points_from_setuppy(project_file, options)
+		return M.aentry_points_setuppy(project_file, options)
 	end
 
 	if vim.endswith(project_file, ".toml") then
@@ -187,7 +187,12 @@ function M.aentry_points(options)
 			return nil, read_err
 		end
 
-		return require("python_tools.meta.pyproject").entry_points(src)
+		local result, eps_err = require("python_tools.meta.pyproject").entry_points(src, options.group)
+		if result == nil then
+			return nil, eps_err
+		end
+
+		return result, nil
 	end
 
 	error(("Unexpected file extension: %s"):format(project_file))

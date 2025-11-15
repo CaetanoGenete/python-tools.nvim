@@ -14,17 +14,40 @@ if(NOT TARGET Lua::Lua)
 	endif()
 endif()
 
-add_library(redirect SHARED ./src/redirect.c)
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
+
+# Common properties for lua C libraries
+add_library(lua_clib INTERFACE)
+target_link_libraries(lua_clib INTERFACE Lua::Lua)
+target_compile_features(lua_clib INTERFACE c_std_99)
+
+if (MSVC)
+	target_compile_options(lua_clib INTERFACE "/Wall" "/WX")
+else()
+	target_compile_options(lua_clib INTERFACE "-Wall" "-Werror" "-Wpedantic")
+endif()
+
+# Library targets
+
+add_library(tomlc17 STATIC "./src/tomlc17.c")
+target_compile_features(tomlc17 PRIVATE c_std_99)
+target_compile_definitions(tomlc17 PRIVATE _CRT_SECURE_NO_WARNINGS)
+
+if (MSVC)
+	# MVSC /Wall doesn't like tomlc17 unfortunately :(
+	target_compile_options(tomlc17 PRIVATE "/W0")
+endif()
+
+add_library(redirect MODULE ./src/redirect.c)
+set_target_properties(redirect PROPERTIES PREFIX "")
 target_compile_definitions(redirect PRIVATE _CRT_NONSTDC_NO_WARNINGS)
-set_target_properties(redirect PROPERTIES PREFIX "" C_STANDARD 99)
-target_link_libraries(redirect PRIVATE Lua::Lua)
+target_link_libraries(redirect PRIVATE lua_clib)
 
 install(TARGETS redirect DESTINATION ./lib/test/utils/)
 
-add_library(pyproject SHARED ./src/pyproject.c ./src/tomlc17.c)
-target_compile_definitions(pyproject PRIVATE _CRT_SECURE_NO_WARNINGS)
-set_target_properties(pyproject PROPERTIES PREFIX "" C_STANDARD 99)
+add_library(pyproject MODULE ./src/pyproject.c)
+set_target_properties(pyproject PROPERTIES PREFIX "")
 target_include_directories(pyproject PRIVATE ./src/)
-target_link_libraries(pyproject PRIVATE Lua::Lua)
+target_link_libraries(pyproject PRIVATE lua_clib tomlc17)
 
 install(TARGETS pyproject DESTINATION ./lib/python_tools/meta/)

@@ -35,31 +35,49 @@ local AENTRY_POINTS_CASES = {
 		use_importlib = true,
 		opts = {},
 		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
+		desc = "list all entry-points in mock-repo",
 	},
 	{
 		use_importlib = false,
 		opts = { search_dir = MOCK_REPO_PATH },
 		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
+		desc = "should list all entry-points in mock-repo",
 	},
 	{
 		use_importlib = true,
 		opts = { group = "my.group" },
 		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
+		desc = "should list only 'my.group' entry-points in mock-repo",
+	},
+	{
+		use_importlib = false,
+		opts = { group = "my.group", search_dir = MOCK_REPO_PATH },
+		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
+		desc = "should list only 'my.group' entry-points in mock-repo",
 	},
 	{
 		use_importlib = true,
 		opts = { group = "non-existent-group" },
 		fixture = {},
+		desc = "should not find any entry-points",
+	},
+	{
+		use_importlib = false,
+		opts = { group = "non-existent-group", search_dir = MOCK_REPO_PATH },
+		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
+		desc = "should not find any entry-points in mock-repo",
 	},
 	{
 		use_importlib = false,
 		opts = { search_dir = MOCK_SETUP_PY_REPO_PATH },
 		fixture = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json"),
+		desc = "should list all entry-points in mock-setup-py-repo",
 	},
 	{
 		use_importlib = false,
 		opts = { search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir") },
 		fixture = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json"),
+		desc = "should list all entry-points in mock-setup-py-repo",
 	},
 	{
 		use_importlib = false,
@@ -68,6 +86,7 @@ local AENTRY_POINTS_CASES = {
 			search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir"),
 		},
 		fixture = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json"),
+		desc = "should list 'other' entry-points in mock-setup-py-repo",
 	},
 	{
 		use_importlib = false,
@@ -76,12 +95,13 @@ local AENTRY_POINTS_CASES = {
 			search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir"),
 		},
 		fixture = {},
+		desc = "should not find any entry-points in mock-setup-py-repo",
 	},
 }
 
 describe("aentry_points_*", function()
-	for test_num, case in ipairs(AENTRY_POINTS_CASES) do
-		async(it, ("should succeed (case %d)"):format(test_num), function()
+	for _, case in ipairs(AENTRY_POINTS_CASES) do
+		async(it, ("importlib=%s %s"):format(case.use_importlib, case.desc), function()
 			tutils.log("Test case: %s", case)
 
 			local actual
@@ -105,10 +125,10 @@ describe("aentry_points_*", function()
 	end
 end)
 
-describe("aentry_points_from_project", function()
+describe("aentry_points_from_setuppy", function()
 	async(it, "should list all entry_points from mock-setup-py-repo", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
-		local actual = assert(ep.aentry_points_from_setuppy(search_dir))
+		local actual = assert(ep.aentry_points_setuppy(search_dir))
 
 		local expected = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json")
 		sort_entry_points(actual)
@@ -118,7 +138,7 @@ describe("aentry_points_from_project", function()
 
 	async(it, "should fail if file is not the right format", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir", "placeholder.txt")
-		local actual, err = ep.aentry_points_from_setuppy(search_dir)
+		local actual, err = ep.aentry_points_setuppy(search_dir)
 
 		assert.no.same(err, nil)
 		assert.same(actual, nil)

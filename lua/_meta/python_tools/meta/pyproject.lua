@@ -7,7 +7,8 @@ local capi = {}
 ---
 ---@nodiscard
 ---@param src string
----@return EntryPointDef[]
-function capi.entry_points(src) end
+---@param group string?
+---@return EntryPointDef[]? eps, string? errmsg
+function capi.entry_points(src, group) end
 
 return capi
