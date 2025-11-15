@@ -47,6 +47,13 @@ local PICKER_TEST_CASES = {
 		use_importlib = false,
 		group = nil,
 		python_path = nil,
+		search_dir = tutils.fixt.path("mock-repo"),
+		fixture = tutils.fixt.get("entry_points", "mock_entry_points_ts_only.json"),
+	},
+	{
+		use_importlib = false,
+		group = nil,
+		python_path = nil,
 		search_dir = tutils.fixt.path("mock-setup-py-repo"),
 		fixture = tutils.fixt.get("entry_points", "mock_setup_py_entry_points.json"),
 	},

@@ -1,7 +1,7 @@
 local M = {}
 
 function M.setup()
-	local root = vim.fs.dirname(debug.getinfo(1).source) .. "/../../../"
+	local root = debug.getinfo(1).source:match("@?(.*/)") .. "../../"
 	root = vim.fs.normalize(vim.fs.abspath(root))
 
 	-- Setup package path to be able to find c libraries
