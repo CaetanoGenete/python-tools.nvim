@@ -9,6 +9,7 @@ __pycache__
 # cxx build dir
 /build/
 /build-ts/
+/lib/
 
 # clangd cache
 /.cache/

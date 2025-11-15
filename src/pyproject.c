@@ -1,9 +1,9 @@
 #include "lauxlib.h"
 #include "lua.h"
-#include "lualib.h"
 #include "tomlc17.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #ifdef _WIN32
 	#define LIB_EXPORT __declspec(dllexport)
@@ -83,9 +83,10 @@ int l_entry_points(lua_State *L)
 {
 	int nreturn = 0;
 
-	FILE *src = *(FILE **)luaL_checkudata(L, 1, LUA_FILEHANDLE);
+	size_t src_len;
+	const char *src = luaL_checklstring(L, 1, &src_len);
 
-	toml_result_t toml = toml_parse_file(src);
+	toml_result_t toml = toml_parse(src, src_len);
 	if (!toml.ok) {
 		luaL_error(L, "Failed to parse toml file: %s!", toml.errmsg);
 		goto cleanup;
@@ -121,7 +122,7 @@ cleanup:
 }
 
 const static luaL_Reg lib[] = {
-  {"entry_points_from_pyproject", l_entry_points},
+  {"entry_points", l_entry_points},
   {NULL, NULL},
 };
 

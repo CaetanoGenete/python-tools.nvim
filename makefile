@@ -56,6 +56,8 @@ check-types: $(RC_PATH)
 check-formatting:
 	stylua -c .
 
+### Test targets
+
 TEST_TARGETS:=$(patsubst %, test-%, $(SUPPORTED-VERSIONS))
 
 .PHONY: $(TEST_TARGETS)
@@ -65,10 +67,13 @@ $(TEST_TARGETS): test-%: pyenv-% compile compile-parser
 .PHONY: test-all
 test-all: $(TEST_TARGETS)
 
+.PHONY: test
+test: test-3.12
+
 ### Dev targets
 
 .PHONY: test-dev
-test-dev: check-types check-formatting test-3.12
+test-dev: check-types check-formatting test
 
 .PHONY: dev-container
 dev-container:

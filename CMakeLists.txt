@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.11)
 
 project(python_tools C)
 
@@ -16,12 +16,14 @@ endif()
 
 add_library(redirect SHARED ./src/redirect.c)
 target_compile_definitions(redirect PRIVATE _CRT_NONSTDC_NO_WARNINGS)
+set_target_properties(redirect PROPERTIES PREFIX "" C_STANDARD 99)
 target_link_libraries(redirect PRIVATE Lua::Lua)
 
 install(TARGETS redirect DESTINATION ./lib/test/utils/)
 
 add_library(pyproject SHARED ./src/pyproject.c ./src/tomlc17.c)
 target_compile_definitions(pyproject PRIVATE _CRT_SECURE_NO_WARNINGS)
+set_target_properties(pyproject PROPERTIES PREFIX "" C_STANDARD 99)
 target_include_directories(pyproject PRIVATE ./src/)
 target_link_libraries(pyproject PRIVATE Lua::Lua)
 

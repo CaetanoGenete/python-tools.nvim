@@ -182,25 +182,15 @@ function M.aentry_points(options)
 	end
 
 	if vim.endswith(project_file, ".toml") then
-		local fd, err = io.open(project_file, "r")
-		if not fd then
-			return nil, ("Failed to open '%s': %s"):format(project_file, err)
+		local src, read_err = async.read_file(project_file)
+		if src == nil then
+			return nil, read_err
 		end
 
-		local ptools = require("python_tools.meta.pyproject")
-
-		local ok, result = pcall(ptools.entry_points_from_pyproject, fd)
-		fd:close()
-
-		if not ok then
-			---@diagnostic disable-next-line: return-type-mismatch
-			return nil, result
-		end
-
-		return result
+		return require("python_tools.meta.pyproject").entry_points(src)
 	end
 
-	-- For now, only setup.py is supported.
+	error(("Unexpected file extension: %s"):format(project_file))
 end
 
 local ROOT_ATTR_QUERY_STRING = [[
