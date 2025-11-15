@@ -101,10 +101,12 @@ end
 --- Defaults to binary on PATH.
 ---@field python_path string?
 
---- will return that no entry-points were found.
+--- Returns all entry-points defined in the file pointed at by `project_file`.
 ---
---- For ALL avaiable entry-points in the environment, see:
---- [aentry_points](lua://entry_points.aentry_points_importlib).
+--- Said `file` must be a valid python script.
+---
+--- For reading a _pyproject.toml_ file, see:
+--- [entry_points_pyproject](lua://entry_points.entry_points_pyproject)
 ---
 ---@async
 ---@nodiscard
@@ -121,6 +123,24 @@ function M.aentry_points_setuppy(project_file, options)
 
 	local result = pyscripts.alist_entry_points_setuppy(python_path, { project_file, options.group })
 	return result, "Could not find entry_points"
+end
+
+--- Returns all entry-points in `content`.
+---
+--- `content` must be the contents of a valid _pyproject.toml_ file.
+---
+--- For reading a _setup.py_ file, see:
+--- [entry_points_pyproject](lua://entry_points.aentry_points_setuppy)
+---
+---@nodiscard
+---@param content string toml text from which to extract entry-points.
+---@param group string? filter selection to entry-points under this `group`.
+---@return EntryPointDef[]? entrypoints, string? errmsg There `are two possible cases:
+---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
+---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
+---	  if none could be found.
+function M.entry_points_pyproject(content, group)
+	return require("python_tools.meta.pyproject").entry_points(content, group)
 end
 
 ---@async
@@ -187,7 +207,7 @@ function M.aentry_points(options)
 			return nil, read_err
 		end
 
-		local result, eps_err = require("python_tools.meta.pyproject").entry_points(src, options.group)
+		local result, eps_err = M.entry_points_pyproject(src, options.group)
 		if result == nil then
 			return nil, eps_err
 		end

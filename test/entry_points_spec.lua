@@ -125,7 +125,7 @@ describe("aentry_points_*", function()
 	end
 end)
 
-describe("aentry_points_from_setuppy", function()
+describe("aentry_points_setuppy", function()
 	async(it, "should list all entry_points from mock-setup-py-repo", function()
 		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
 		local actual = assert(ep.aentry_points_setuppy(search_dir))
@@ -145,6 +145,24 @@ describe("aentry_points_from_setuppy", function()
 	end)
 end)
 
+describe("aentry_points_pyproject", function()
+	async(it, "should list no entry-points", function()
+		local file = tutils.fixt.get("pyproject", "no_entrypoints.toml")
+		local result, err = ep.entry_points_pyproject(file)
+
+		assert.is_nil(err)
+		assert.same({}, result)
+	end)
+
+	async(it, "should fail with an error if toml file is invalid", function()
+		local file = tutils.fixt.get("pyproject", "invalid.toml")
+		local result, err = ep.entry_points_pyproject(file)
+
+		assert.is_nil(result)
+		assert.no.is_nil(err)
+	end)
+end)
+
 local AENTRY_POINT_LOCATION_CASES = {
 	{
 		use_importlib = true,
@@ -159,13 +177,13 @@ local AENTRY_POINT_LOCATION_CASES = {
 
 ---@async
 ---@param def EntryPointDef
----@param opts any
+---@param test_case any
 ---@return EntryPoint?, string?
-local function atest_func(def, opts)
-	if opts.use_importlib then
-		return ep.aentry_point_location_importlib(def, opts.opt)
+local function aep_loc(def, test_case)
+	if test_case.use_importlib then
+		return ep.aentry_point_location_importlib(def, test_case.opt)
 	else
-		return ep.aentry_point_location_ts(def, opts.opt)
+		return ep.aentry_point_location_ts(def, test_case.opt)
 	end
 end
 
@@ -179,7 +197,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 	describe(test_name, function()
 		for _, case in pairs(fixt) do
 			async(it, ("should find the correct location for `%s`"):format(case.name), function()
-				local actual = assert(atest_func(case, opts))
+				local actual = assert(aep_loc(case, opts))
 				local expected_path = tutils.fixt.path(case.rel_filepath)
 
 				assert.paths_same(expected_path, actual.filename)
@@ -194,7 +212,7 @@ for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
 				value = { "hello", "no_such_function" },
 			}
 
-			local result, err = atest_func(def, opts)
+			local result, err = aep_loc(def, opts)
 			assert.is_nil(result)
 			assert.no.is_nil(err)
 		end)

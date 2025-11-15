@@ -14,8 +14,6 @@ if(NOT TARGET Lua::Lua)
 	endif()
 endif()
 
-set(CMAKE_SHARED_LIBRARY_PREFIX "")
-
 # Common properties for lua C libraries
 add_library(lua_clib INTERFACE)
 target_link_libraries(lua_clib INTERFACE Lua::Lua)
@@ -38,16 +36,20 @@ if (MSVC)
 	target_compile_options(tomlc17 PRIVATE "/W0")
 endif()
 
-add_library(redirect MODULE ./src/redirect.c)
-set_target_properties(redirect PROPERTIES PREFIX "")
-target_compile_definitions(redirect PRIVATE _CRT_NONSTDC_NO_WARNINGS)
-target_link_libraries(redirect PRIVATE lua_clib)
-
-install(TARGETS redirect DESTINATION ./lib/test/utils/)
-
 add_library(pyproject MODULE ./src/pyproject.c)
 set_target_properties(pyproject PROPERTIES PREFIX "")
 target_include_directories(pyproject PRIVATE ./src/)
 target_link_libraries(pyproject PRIVATE lua_clib tomlc17)
 
 install(TARGETS pyproject DESTINATION ./lib/python_tools/meta/)
+
+option(BUILD_REDIRECTLIB "Build testing utility library" OFF)
+
+if (BUILD_REDIRECTLIB)
+	add_library(redirect MODULE ./src/redirect.c)
+	set_target_properties(redirect PROPERTIES PREFIX "")
+	target_compile_definitions(redirect PRIVATE _CRT_NONSTDC_NO_WARNINGS)
+	target_link_libraries(redirect PRIVATE lua_clib)
+
+	install(TARGETS redirect DESTINATION ./lib/test/utils/)
+endif()
