@@ -18,5 +18,7 @@ end
 vim.g.pytools_default_python_path = python_path
 vim.treesitter.language.add("python", { path = py_parser_path })
 
+require("python_tools").setup()
+
 -- Prevent messing up local SHADA during tests
 vim.opt.shadafile = "NONE"

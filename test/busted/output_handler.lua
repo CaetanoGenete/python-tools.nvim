@@ -2,7 +2,7 @@ local s = require("say")
 local pretty = require("pl.pretty")
 local term = require("term")
 local luassert = require("luassert")
-local redirect = require("redirect")
+local redirect = require("test.utils.redirect")
 
 local isatty = io.type(io.stdout) == "file" and term.isatty(io.stdout)
 

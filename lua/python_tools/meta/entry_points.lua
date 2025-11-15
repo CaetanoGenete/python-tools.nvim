@@ -108,7 +108,7 @@ end
 ---
 ---@async
 ---@nodiscard
----@param project_file string Path to *setup.py* or *pyproject.toml*.
+---@param project_file string Path to *setup.py*.
 ---@param options EntryPointsFromSetuppyOptions? Optional filter.
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
@@ -177,8 +177,30 @@ function M.aentry_points(options)
 		return nil, find_err
 	end
 
+	if vim.endswith(project_file, ".py") then
+		return M.aentry_points_from_setuppy(project_file, options)
+	end
+
+	if vim.endswith(project_file, ".toml") then
+		local fd, err = io.open(project_file, "r")
+		if not fd then
+			return nil, ("Failed to open '%s': %s"):format(project_file, err)
+		end
+
+		local ptools = require("python_tools.meta.pyproject")
+
+		local ok, result = pcall(ptools.entry_points_from_pyproject, fd)
+		fd:close()
+
+		if not ok then
+			---@diagnostic disable-next-line: return-type-mismatch
+			return nil, result
+		end
+
+		return result
+	end
+
 	-- For now, only setup.py is supported.
-	return M.aentry_points_from_setuppy(project_file, options)
 end
 
 local ROOT_ATTR_QUERY_STRING = [[

@@ -7,7 +7,7 @@ MINIMAL_INIT:=./scripts/minimal_init.lua
 RC_PATH:=.luarc.json
 
 BUILD_PATH:=./build
-INSTALL_PATH:=$(BUILD_PATH)/install
+INSTALL_PATH:=./
 
 PARSER_BUILD_PATH:=./build-ts
 PARSER_INSTALL_PATH:=$(PARSER_BUILD_PATH)/install

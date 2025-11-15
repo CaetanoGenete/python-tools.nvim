@@ -10,6 +10,7 @@ A set of utilities for developing Neovim tooling for python.
 return {
 	"CaetanoGenete/python-tools.nvim",
 	lazy = true,
+	config = true,
 }
 ```
 

@@ -37,6 +37,11 @@ local AENTRY_POINTS_CASES = {
 		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
 	},
 	{
+		use_importlib = false,
+		opts = { search_dir = MOCK_REPO_PATH },
+		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),
+	},
+	{
 		use_importlib = true,
 		opts = { group = "my.group" },
 		fixture = ep_def_fixture("entry_points", "mock_entry_points.json"),

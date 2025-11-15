@@ -6,7 +6,13 @@ __pycache__
 # generated files
 .luarc.json
 
-# cxx build dir
+# c artifacts
+*.so
+*.so.*
+*.dll
+*.lib
+
+# c build dir
 /build/
 /build-ts/
 
