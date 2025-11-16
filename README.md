@@ -224,20 +224,20 @@ return {
 
 The library consists of two source files, both found in the `./src/` directory,
 [pyproject.c](./src/pyproject.c) and [tomlc17.c](./src/tomlc17.c). These should
-both be compiled into the shared library `pyproject.so` (or `pyproject.dll` on
+both be compiled into the shared library `_pyproject.so` (or `_pyproject.dll` on
 Windows), and installed to the directory `<cpath-dir>/python_tools/meta/`. Here,
 `<cpath-dir>` is any valid directory on the Lua `CPATH`; see the
 [Lua 5.1 docs](https://www.lua.org/manual/5.1/manual.html#pdf-package.cpath) for
 more information.
 
-The directory `./lib/` is added to `{CPATH}` on setup, so this would also be a
+The directory `./lib/` is added to `CPATH` on setup, so this would also be a
 good directory wherein to install the library.
 
 For example, if using `gcc` on a _unix_ OS:
 
 ```bash
 mkdir -p ./lib/python_tools/meta/
-gcc -shared -fPIC -O3 -I/usr/include/lua5.1/ -o ./lib/python_tools/meta/pyproject.so ./src/pyproject.c ./src/tomlc17.c
+gcc -shared -fPIC -O3 -I/usr/include/lua5.1/ -o ./lib/python_tools/meta/_pyproject.so ./src/pyproject.c ./src/tomlc17.c
 ```
 
 ### Precompiled binaries

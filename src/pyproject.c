@@ -143,8 +143,8 @@ const static luaL_Reg lib[] = {
   {NULL, NULL},
 };
 
-LIB_EXPORT int luaopen_python_tools_meta_pyproject(lua_State *L)
+LIB_EXPORT int luaopen_python_tools_meta__pyproject(lua_State *L)
 {
-	luaL_register(L, "pyproject", lib);
+	luaL_register(L, "_pyproject", lib);
 	return 1;
 }

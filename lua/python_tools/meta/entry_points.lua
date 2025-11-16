@@ -140,7 +140,7 @@ end
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
 function M.entry_points_pyproject(content, group)
-	return require("python_tools.meta.pyproject").entry_points(content, group)
+	return require("python_tools.meta._pyproject").entry_points(content, group)
 end
 
 ---@async

@@ -15,6 +15,6 @@ test_dependencies = {
 build = {
 	type = "builtin",
 	modules = {
-		["python_tools.meta.pyproject"] = { "./src/pyproject.c", "./src/tomlc17.c" },
+		["python_tools.meta._pyproject"] = { "./src/pyproject.c", "./src/tomlc17.c" },
 	},
 }

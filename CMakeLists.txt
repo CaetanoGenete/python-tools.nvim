@@ -37,7 +37,7 @@ if (MSVC)
 endif()
 
 add_library(pyproject MODULE ./src/pyproject.c)
-set_target_properties(pyproject PROPERTIES PREFIX "")
+set_target_properties(pyproject PROPERTIES PREFIX "_")
 target_include_directories(pyproject PRIVATE ./src/)
 target_link_libraries(pyproject PRIVATE lua_clib tomlc17)
 
@@ -47,7 +47,7 @@ option(BUILD_REDIRECTLIB "Build testing utility library" OFF)
 
 if (BUILD_REDIRECTLIB)
 	add_library(redirect MODULE ./src/redirect.c)
-	set_target_properties(redirect PROPERTIES PREFIX "")
+	set_target_properties(redirect PROPERTIES PREFIX "_")
 	target_compile_definitions(redirect PRIVATE _CRT_NONSTDC_NO_WARNINGS)
 	target_link_libraries(redirect PRIVATE lua_clib)
 
