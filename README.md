@@ -9,14 +9,13 @@ A set of utilities for developing Neovim tooling for python.
 ```lua
 return {
 	"CaetanoGenete/python-tools.nvim",
-	build = "luarocks", -- Only if you have luarocks installed.
 	lazy = true,
 	submodules = false, -- Submodules are there for dev purposes only.
 	config = true,
 }
 ```
 
-If issues occur during the build, see
+If issues occur during the build step, or there is no build step, see
 [how to build the C library](#building-the-c-library).
 
 ## Dependencies
@@ -191,8 +190,8 @@ luarocks to compile the library.
 
 > [!IMPORTANT]
 >
-> If on Windows, unless you're environment is appropriately setup, you may need
-> to use the _Developer Command Prompt_.
+> If on Windows, unless your environment is appropriately setup, you may need to
+> use the _Developer Command Prompt_.
 
 ```lua
 -- Lazy plugin spec:
