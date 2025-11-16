@@ -14,6 +14,40 @@ return {
 }
 ```
 
+### Compiling the c library
+
+> [!NOTE]
+>
+> The library remains functional even if the c library is not available.
+> However, entry-points will not be acquirable from _pyproject.toml_ files.
+
+_python-tools_ provides a C99 library for reading entry-points from
+_pyproject.toml_ files. If lazy does not build this for you (or fails). You may
+need to compile it from source. If `cmake` is available, it should be as simple
+as setting the _build_ field of the Lazy spec to the following:
+
+```lua
+return {
+	"CaetanoGenete/python-tools.nvim",
+	build = "cmake -S . -B build && cmake --install --prefix .",
+	...,
+}
+```
+
+> [!NOTE]
+>
+> The library remains functional even if the c library is not available.
+> However, entry-points will not be acquirable from _pyproject.toml_ files.
+
+Otherwise, the library consists of two source files, both found in the `./src/`
+directory, [pyproject.c](./src/pyproject.c) and [tomlc17.c](./src/tomlc17.c).
+These should both be compiled into the shared library `pyproject.so` (or
+`pyproject.dll` on Windows), and installed to the directory
+`{LUA_CPATH}/python_tools/meta/`.
+
+The directory `./lib/` is added to `{CPATH}` on setup, so this would also be a
+good directory wherein to install the library.
+
 ## Dependencies
 
 - [NeoVim](https://github.com/neovim/neovim) 0.11
