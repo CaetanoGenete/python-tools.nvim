@@ -19,16 +19,16 @@ return {
 
 > [!NOTE]
 >
-> The library remains functional even if the c library is not available.
-> However, entry-points will not be acquirable from _pyproject.toml_ files.
+> The plugin remains functional even if the c library is not available. However,
+> entry-points will not be acquirable from _pyproject.toml_ files.
 
 _python-tools_ provides a C99 library for reading entry-points from
-_pyproject.toml_ files. If lazy does not build this for you (or fails). You may
-need to compile it from source. If `cmake` is available, it should be as simple
-as setting the _build_ field of the Lazy spec to the following:
+_pyproject.toml_ files. If Lazy does not build this for you (or fails), it may
+be necessary to compile it from source. If `cmake` is available, it should be as
+simple as setting the _build_ field of the Lazy plugin spec to the following:
 
 ```lua
--- Lazy spec:
+-- Lazy plugin spec:
 return {
 	"CaetanoGenete/python-tools.nvim",
 	build = "cmake -S . -B build && cmake --build build && cmake --install build --prefix ./lib/",
@@ -36,21 +36,17 @@ return {
 }
 ```
 
-> [!NOTE]
->
-> The library remains functional even if the c library is not available.
-> However, entry-points will not be acquirable from _pyproject.toml_ files.
+### Manual compilation
 
-Otherwise, the library consists of two source files, both found in the `./src/`
-directory, [pyproject.c](./src/pyproject.c) and [tomlc17.c](./src/tomlc17.c).
-These should both be compiled into the shared library `pyproject.so` (or
-`pyproject.dll` on Windows), and installed to the directory
-`{LUA_CPATH}/python_tools/meta/`.
+The library consists of two source files, both found in the `./src/` directory,
+[pyproject.c](./src/pyproject.c) and [tomlc17.c](./src/tomlc17.c). These should
+both be compiled into the shared library `pyproject.so` (or `pyproject.dll` on
+Windows), and installed to the directory `{CPATH}/python_tools/meta/`.
 
 The directory `./lib/` is added to `{CPATH}` on setup, so this would also be a
 good directory wherein to install the library.
 
-For example, if using `gcc` on a `linux`:
+For example, if using `gcc` on a _unix_ OS:
 
 ```bash
 mkdir -p ./lib/python_tools/meta/
