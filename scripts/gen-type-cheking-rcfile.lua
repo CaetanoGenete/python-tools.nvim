@@ -15,7 +15,8 @@ if lua_path ~= nil then
 end
 
 local libs = {
-	"./lua/_meta",
+	"./test/_meta/",
+	"./lua/_meta/",
 }
 
 -- Add addons

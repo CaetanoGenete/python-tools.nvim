@@ -9,14 +9,20 @@ A set of utilities for developing Neovim tooling for python.
 ```lua
 return {
 	"CaetanoGenete/python-tools.nvim",
+	build = "luarocks", -- Only if you have luarocks installed.
 	lazy = true,
+	submodules = false, -- Submodules are there for dev purposes only.
+	config = true,
 }
 ```
 
+If issues occur during the build, see
+[how to build the C library](#building-the-c-library).
+
 ## Dependencies
 
-- [NeoVim](https://github.com/neovim/neovim) 0.11
-- Python >=3.8 (Your milage may vary for earlier versions)
+- [NeoVim](https://github.com/neovim/neovim) 0.11+
+- Python 3.8+ (Your milage may vary for earlier versions)
 - A python tree-sitter parser. (Can be installed using
   [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter), for
   example).
@@ -165,6 +171,80 @@ eps = entry_points(name=argv[1], group=argv[2])
 next(iter(eps)).load()()
 ```
 
+## Building the C library
+
+> [!NOTE]
+>
+> The plugin remains functional even if the C library is not available. However,
+> entry-points will not be acquirable from _pyproject.toml_ files, unless using
+> importlib.
+
+_python-tools_ provides a C99 library for reading entry-points from
+_pyproject.toml_ files. If Lazy does not build this for you (or fails), it may
+be necessary to compile it from source.
+
+### Using Luarocks
+
+If [luarocks](https://luarocks.org/) is installed, by appropriately setting the
+_build_ field of the Lazy plugin spec, Lazy _v11+_ can be instructed to use
+luarocks to compile the library.
+
+> [!IMPORTANT]
+>
+> If on Windows, unless you're environment is appropriately setup, you may need
+> to use the _Developer Command Prompt_.
+
+```lua
+-- Lazy plugin spec:
+return {
+	"CaetanoGenete/python-tools.nvim",
+	build = "rockspec",
+	...,
+}
+```
+
+### Using CMake
+
+If [cmake](https://cmake.org/) is available, it should be as simple as setting
+the _build_ field of the Lazy plugin spec to the following:
+
+```lua
+-- Lazy plugin spec:
+return {
+	"CaetanoGenete/python-tools.nvim",
+	build = "cmake -S . -B build -DCMAKE_BUILD_TYPE=release && cmake --build build --config release && cmake --install build --prefix ./lib/",
+	...,
+}
+```
+
+### Manual compilation
+
+> [!WARNING]
+>
+> These steps are more likely to become obsolete, compared to the above methods.
+
+The library consists of two source files, both found in the `./src/` directory,
+[pyproject.c](./src/pyproject.c) and [tomlc17.c](./src/tomlc17.c). These should
+both be compiled into the shared library `pyproject.so` (or `pyproject.dll` on
+Windows), and installed to the directory `<cpath-dir>/python_tools/meta/`. Here,
+`<cpath-dir>` is any valid directory on the Lua `CPATH`; see the
+[Lua 5.1 docs](https://www.lua.org/manual/5.1/manual.html#pdf-package.cpath) for
+more information.
+
+The directory `./lib/` is added to `{CPATH}` on setup, so this would also be a
+good directory wherein to install the library.
+
+For example, if using `gcc` on a _unix_ OS:
+
+```bash
+mkdir -p ./lib/python_tools/meta/
+gcc -shared -fPIC -O3 -I/usr/include/lua5.1/ -o ./lib/python_tools/meta/pyproject.so ./src/pyproject.c ./src/tomlc17.c
+```
+
+### Precompiled binaries
+
+This feature is planned, but not currently available...
+
 ## Development
 
 ### Dev dependencies
@@ -185,6 +265,12 @@ accordingly.
 There is a simple dockerfile defined at the root of this project that creates an
 image with all necessary dependencies. You may use it as a dev-container, or
 otherwise as a test environmet by simply running:
+
+```bash
+make dev-container
+```
+
+Or:
 
 ```bash
 docker build -t pytools .
@@ -212,5 +298,5 @@ Or through make (Which also calls busted for you, but handles other
 dependencies):
 
 ```bash
-make test-dev # Or make test-all
+make test # Or make test-all
 ```

@@ -2,6 +2,7 @@ if vim.version.lt(vim.version(), { 0, 11, 0 }) then
 	error("Only supporting Neovim version >= 0.11, please update.")
 end
 
+-- Useful when manually testing, allows 'nvim -u ./scripts/minimal_init.lua' to pickup plugin.
 package.path = package.path .. ";./lua/?.lua;./lua/?/init.lua"
 
 local py_parser_path
@@ -17,6 +18,8 @@ end
 
 vim.g.pytools_default_python_path = python_path
 vim.treesitter.language.add("python", { path = py_parser_path })
+
+require("python_tools").setup()
 
 -- Prevent messing up local SHADA during tests
 vim.opt.shadafile = "NONE"
