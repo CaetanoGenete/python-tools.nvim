@@ -1,0 +1,61 @@
+BasedOnStyle: LLVM
+
+Language: C
+
+# Editor
+ColumnLimit: 100
+IndentWidth: 2
+TabWidth: 2
+UseTab: ForIndentation
+
+# Operands
+AlignOperands: Align
+BreakBeforeBinaryOperators: All
+BreakBeforeTernaryOperators: true
+
+# Numeric literals
+IntegerLiteralSeparator:
+  Binary: 8
+  Decimal: 3
+  DecimalMinDigits: 5
+  Hex: -1
+
+# Parameter/argument alignment
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllArgumentsOnNextLine: false
+BinPackArguments: false
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterNamespace: true # safe: ignored for pure C but allowed
+  AfterFunction: true
+  SplitEmptyFunction: false
+  BeforeElse: true
+  BeforeWhile: true
+
+# Functions
+PenaltyReturnTypeOnItsOwnLine: 999
+
+# Structs
+ContinuationIndentWidth: 2
+
+# Macros
+AlignEscapedNewlines: Right
+IndentPPDirectives: BeforeHash
+
+# Empty lines
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+SeparateDefinitionBlocks: Always
+InsertNewlineAtEOF: true
+
+# Includes
+IncludeBlocks: Regroup
+
+# Comments
+SpacesInLineCommentPrefix:
+  Maximum: 1
+  Minimum: 1

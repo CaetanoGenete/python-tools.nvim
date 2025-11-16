@@ -79,7 +79,7 @@ function M.aentry_points_importlib(options)
 	return result, "Could not find entry_points"
 end
 
----@class EntryPointsFromSetuppyOptions
+---@class EntryPointsSetuppyOptions
 --- Filter selection to entry-points under this `group`. If unset, looks for **ALL** entry-points.
 ---
 --- See <https://packaging.python.org/en/latest/specifications/entry-points/#data-model> for more
@@ -101,26 +101,46 @@ end
 --- Defaults to binary on PATH.
 ---@field python_path string?
 
---- will return that no entry-points were found.
+--- Returns all entry-points defined in the file pointed at by `project_file`.
 ---
---- For ALL avaiable entry-points in the environment, see:
---- [aentry_points](lua://entry_points.aentry_points_importlib).
+--- Said `file` must be a valid python script.
+---
+--- For reading a _pyproject.toml_ file, see:
+--- [entry_points_pyproject](lua://entry_points.entry_points_pyproject)
 ---
 ---@async
 ---@nodiscard
----@param project_file string Path to *setup.py* or *pyproject.toml*.
----@param options EntryPointsFromSetuppyOptions? Optional filter.
+---@param project_file string Path to *setup.py*.
+---@param options EntryPointsSetuppyOptions? Optional filter.
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
-function M.aentry_points_from_setuppy(project_file, options)
+function M.aentry_points_setuppy(project_file, options)
 	options = options or {}
 
 	local python_path = options.python_path or pyutils.default_path()
 
 	local result = pyscripts.alist_entry_points_setuppy(python_path, { project_file, options.group })
 	return result, "Could not find entry_points"
+end
+
+--- Returns all entry-points in `content`.
+---
+--- `content` must be the contents of a valid _pyproject.toml_ file.
+---
+--- For reading a _setup.py_ file, see:
+--- [entry_points_pyproject](lua://entry_points.aentry_points_setuppy)
+---
+---@nodiscard
+---@param content string toml text from which to extract entry-points.
+---@param group string? filter selection to entry-points under this `group`.
+---@return EntryPointDef[]? entrypoints, string? errmsg There `are two possible cases:
+---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
+---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
+---	  if none could be found.
+function M.entry_points_pyproject(content, group)
+	return require("python_tools.meta.pyproject").entry_points(content, group)
 end
 
 ---@async
@@ -132,7 +152,7 @@ local function afind_project_file(search_dir)
 	return project_file, find_err
 end
 
----@class EntryPointsTSOptions : EntryPointsFromSetuppyOptions
+---@class EntryPointsTSOptions : EntryPointsSetuppyOptions
 --- When looking for entry-points, this and every parent directory will be scanned to find either
 --- `pyproject.toml` or `setup.py`. If the search is successful, the entry-points will from therein
 --- be extracted.
@@ -177,8 +197,25 @@ function M.aentry_points(options)
 		return nil, find_err
 	end
 
-	-- For now, only setup.py is supported.
-	return M.aentry_points_from_setuppy(project_file, options)
+	if vim.endswith(project_file, ".py") then
+		return M.aentry_points_setuppy(project_file, options)
+	end
+
+	if vim.endswith(project_file, ".toml") then
+		local src, read_err = async.read_file(project_file)
+		if src == nil then
+			return nil, read_err
+		end
+
+		local result, eps_err = M.entry_points_pyproject(src, options.group)
+		if result == nil then
+			return nil, eps_err
+		end
+
+		return result, nil
+	end
+
+	error(("Unexpected file extension: %s"):format(project_file))
 end
 
 local ROOT_ATTR_QUERY_STRING = [[
