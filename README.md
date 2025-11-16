@@ -10,6 +10,7 @@ A set of utilities for developing Neovim tooling for python.
 return {
 	"CaetanoGenete/python-tools.nvim",
 	lazy = true,
+	submodules = false, -- Only used for dev purposes
 	config = true,
 }
 ```
@@ -27,9 +28,10 @@ need to compile it from source. If `cmake` is available, it should be as simple
 as setting the _build_ field of the Lazy spec to the following:
 
 ```lua
+-- Lazy spec:
 return {
 	"CaetanoGenete/python-tools.nvim",
-	build = "cmake -S . -B build && cmake --install --prefix .",
+	build = "cmake -S . -B build && cmake --build build && cmake --install build --prefix ./lib/",
 	...,
 }
 ```
@@ -47,6 +49,13 @@ These should both be compiled into the shared library `pyproject.so` (or
 
 The directory `./lib/` is added to `{CPATH}` on setup, so this would also be a
 good directory wherein to install the library.
+
+For example, if using `gcc` on a `linux`:
+
+```bash
+mkdir -p ./lib/python_tools/meta/
+gcc -shared -fPIC -O3 -I/usr/include/lua5.1/ -o lib/python_tools/meta/pyproject.so ./src/pyproject.c ./src/tomlc17.c
+```
 
 ## Dependencies
 

@@ -41,7 +41,7 @@ set_target_properties(pyproject PROPERTIES PREFIX "")
 target_include_directories(pyproject PRIVATE ./src/)
 target_link_libraries(pyproject PRIVATE lua_clib tomlc17)
 
-install(TARGETS pyproject DESTINATION ./lib/python_tools/meta/)
+install(TARGETS pyproject DESTINATION ./python_tools/meta/)
 
 option(BUILD_REDIRECTLIB "Build testing utility library" OFF)
 
@@ -51,5 +51,5 @@ if (BUILD_REDIRECTLIB)
 	target_compile_definitions(redirect PRIVATE _CRT_NONSTDC_NO_WARNINGS)
 	target_link_libraries(redirect PRIVATE lua_clib)
 
-	install(TARGETS redirect DESTINATION ./lib/test/utils/)
+	install(TARGETS redirect DESTINATION ./test/utils/)
 endif()
