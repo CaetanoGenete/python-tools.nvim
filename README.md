@@ -175,8 +175,9 @@ next(iter(eps)).load()()
 
 > [!NOTE]
 >
-> The plugin remains functional even if the c library is not available. However,
-> entry-points will not be acquirable from _pyproject.toml_ files.
+> The plugin remains functional even if the C library is not available. However,
+> entry-points will not be acquirable from _pyproject.toml_ files, unless using
+> importlib.
 
 _python-tools_ provides a C99 library for reading entry-points from
 _pyproject.toml_ files. If Lazy does not build this for you (or fails), it may
@@ -184,9 +185,9 @@ be necessary to compile it from source.
 
 ### Using Luarocks
 
-If [luarocks](https://luarocks.org/) is installed, Lazy _v11+_ can be instructed
-to use luarocks to compile the library using the _build_ field of the Lazy
-plugin spec:
+If [luarocks](https://luarocks.org/) is installed, by appropriately setting the
+_build_ field of the Lazy plugin spec, Lazy _v11+_ can be instructed to use
+luarocks to compile the library.
 
 > [!IMPORTANT]
 >
@@ -220,12 +221,15 @@ return {
 
 > [!WARNING]
 >
-> These steps are more likely to become invalid, compared to the above methods.
+> These steps are more likely to become obsolete, compared to the above methods.
 
 The library consists of two source files, both found in the `./src/` directory,
 [pyproject.c](./src/pyproject.c) and [tomlc17.c](./src/tomlc17.c). These should
 both be compiled into the shared library `pyproject.so` (or `pyproject.dll` on
-Windows), and installed to the directory `{CPATH}/python_tools/meta/`.
+Windows), and installed to the directory `<cpath-dir>/python_tools/meta/`. Here,
+`<cpath-dir>` is any valid directory on the Lua `CPATH`; see the
+[Lua 5.1 docs](https://www.lua.org/manual/5.1/manual.html#pdf-package.cpath) for
+more information.
 
 The directory `./lib/` is added to `{CPATH}` on setup, so this would also be a
 good directory wherein to install the library.
@@ -234,8 +238,12 @@ For example, if using `gcc` on a _unix_ OS:
 
 ```bash
 mkdir -p ./lib/python_tools/meta/
-gcc -shared -fPIC -O3 -I/usr/include/lua5.1/ -o lib/python_tools/meta/pyproject.so ./src/pyproject.c ./src/tomlc17.c
+gcc -shared -fPIC -O3 -I/usr/include/lua5.1/ -o ./lib/python_tools/meta/pyproject.so ./src/pyproject.c ./src/tomlc17.c
 ```
+
+### Precompiled binaries
+
+This feature is planned, but not currently available...
 
 ## Development
 
@@ -257,6 +265,12 @@ accordingly.
 There is a simple dockerfile defined at the root of this project that creates an
 image with all necessary dependencies. You may use it as a dev-container, or
 otherwise as a test environmet by simply running:
+
+```bash
+make dev-container
+```
+
+Or:
 
 ```bash
 docker build -t pytools .
@@ -284,5 +298,5 @@ Or through make (Which also calls busted for you, but handles other
 dependencies):
 
 ```bash
-make test-dev # Or make test-all
+make test # Or make test-all
 ```
