@@ -60,8 +60,8 @@ const static luaL_Reg lib[] = {
   {NULL, NULL},
 };
 
-LIB_EXPORT int luaopen_test_utils_redirect(lua_State *L)
+LIB_EXPORT int luaopen_test_utils__redirect(lua_State *L)
 {
-	luaL_register(L, "redirect", lib);
+	luaL_register(L, "_redirect", lib);
 	return 1;
 }
