@@ -13,16 +13,33 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Restore luarocks install
+      id: cache-luarocks-install-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ inputs.installPath }}
+        key: ${{ runner.os }}-${{ runner.arch }}-luarocks-install
+
     - name: Download luarocks
+      if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
         git clone --depth 1 --branch "v${{ inputs.luarocksVersion }}" https://github.com/luarocks/luarocks.git ../luarocks/
 
     - name: Compile luarocks
+      if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
       shell: pwsh
       working-directory: ../luarocks
       run: |
         ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA "${{ github.workspace }}/${{ inputs.luaPath }}" /P "${{ github.workspace }}/${{ inputs.installPath }}"
+
+    - name: Cache luarocks install directory
+      if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
+      id: cache-luarocks-install-save
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ inputs.installPath }}
+        key: ${{ steps.cache-luarocks-install-restore.outputs.cache-primary-key }}
 
     - name: Set paths
       shell: cmd
