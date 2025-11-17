@@ -13,22 +13,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Cache luarocks
-      id: cache-luarocks
-      uses: actions/cache@v4
-      with:
-        key: ${{ runner.os }}-luarocks
-        path: |
-          ${{ inputs.installPath }}
-
     - name: Download luarocks
-      if: steps.cache-luarocks.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
         git clone --depth 1 --branch "v${{ inputs.luarocksVersion }}" https://github.com/luarocks/luarocks.git ../luarocks/
 
     - name: Compile luarocks
-      if: steps.cache-luarocks.outputs.cache-hit != 'true'
       shell: pwsh
       working-directory: ../luarocks
       run: |
