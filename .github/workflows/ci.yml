@@ -18,6 +18,9 @@ on:
       - ./docs/**
     branches:
       - master
+env:
+  ts-cli-version: 0.25.2
+
 jobs:
   unit_tests:
     name: unit tests
@@ -47,13 +50,29 @@ jobs:
           CMAKE_PREFIX_PATH: .lua/
         run: make compile
 
+      - name: Restore tree-sitter-python-parser
+        id: cache-tree-sitter-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ./build-ts/
+          key: ${{ runner.os }}-${{ runner.arch }}-ts-py-parser
+
       - name: Install tree-sitter
-        if: runner.os == 'Windows'
-        run: choco install tree-sitter --version 0.25.2
+        if: runner.os == 'Windows' && steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        run: choco install tree-sitter --version ${{ env.ts-cli-version }}
 
       # Note: This is required for `luarocks test --prepare` to succeed.
       - name: Build treesitter grammar python
-        run: make compile-parser
+        if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        run: make build-ts
+
+      - name: Cache tree-sitter-cli directory
+        if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        id: cache-tree-sitter-save
+        uses: actions/cache/save@v4
+        with:
+          path: ./build-ts/
+          key: ${{ steps.cache-tree-sitter-restore.outputs.cache-primary-key }}
 
       - name: Run tests
         env:
