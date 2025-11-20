@@ -28,6 +28,8 @@ runs:
 
     - name: Install luarocks
       uses: ./.github/actions/install-luarocks
+      with:
+        luaPath: ./.lua
 
     - name: Restore luarocks dependencies
       id: cache-luarocks-deps-restore
