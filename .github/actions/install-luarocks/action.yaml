@@ -63,13 +63,13 @@ runs:
     - name: Set paths (Unix)
       if: runner.os != 'Windows'
       shell: bash
-      working-directory: ${{ inputs.installPath }}
+      working-directory: ${{ inputs.installPath }}/bin
       run: |
-        eval `./bin/luarocks path`
+        eval `./luarocks path`
 
-        echo LUA_CPATH="${LUA_CPATH}" >> ${GITHUB_ENV}
-        echo LUA_PATH="${LUA_PATH}" >> ${GITHUB_ENV}
-        echo PATH="${PATH}" >> ${GITHUB_ENV}
+        echo "LUA_CPATH=${LUA_CPATH}" >> "${GITHUB_ENV}"
+        echo "LUA_PATH=${LUA_PATH}" >> "${GITHUB_ENV}"
+        echo "PATH=${PATH}" >> "${GITHUB_ENV}"
 
     - name: Set paths (Windows)
       if: runner.os == 'Windows'
