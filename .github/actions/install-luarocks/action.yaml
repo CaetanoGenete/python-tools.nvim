@@ -3,6 +3,7 @@ inputs:
   luarocksVersion:
     description: Luarocks version
     required: true
+    default: 3.12.2
   luaPath:
     description: Workspace relative path to Lua library
     required: true
