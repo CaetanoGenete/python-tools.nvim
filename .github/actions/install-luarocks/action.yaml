@@ -23,8 +23,7 @@ runs:
 
     - name: Download luarocks
       if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
-      shell: &shell
-        ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
       run: |
         git clone --depth 1 --branch "v${{ inputs.luarocksVersion }}" https://github.com/luarocks/luarocks.git ../luarocks/
 
@@ -32,7 +31,7 @@ runs:
       if: runner.os != 'Windows' && steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
       shell: bash
       working-directory: ../luarocks
-      env: &path_envs
+      env:
         INST_PATH: ${{ github.workspace }}/${{ inputs.installPath }}
         LUA_PATH: ${{ github.workspace }}/${{ inputs.luaPath }}
       run: |
@@ -42,7 +41,9 @@ runs:
     - name: Compile luarocks (Windows)
       if: runner.os == 'Windows' && steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
       shell: pwsh
-      env: *path_envs
+      env:
+        INST_PATH: ${{ github.workspace }}/${{ inputs.installPath }}
+        LUA_PATH: ${{ github.workspace }}/${{ inputs.luaPath }}
       working-directory: ../luarocks
       run: |
         ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA "$Env:LUA_PATH" /P "$Env:INST_PATH"
@@ -80,5 +81,5 @@ runs:
         echo PATH=%PATH% >> %GITHUB_ENV%
 
     - name: Check install
-      shell: *shell
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
       run: luarocks --version
