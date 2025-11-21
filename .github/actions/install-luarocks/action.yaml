@@ -21,17 +21,10 @@ runs:
         path: ${{ inputs.installPath }}
         key: ${{ runner.os }}-${{ runner.arch }}-luarocks-install
 
-    - name: Setup variables
-      id: globals
-      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
-      run: |
-        echo "INST_PATH=${{ github.workspace }}/${{ inputs.installPath }}" >> "${GITHUB_OUTPUT}"
-        echo "LUA_PATH=${{ github.workspace }}/${{ inputs.luaPath }}" >> "${GITHUB_OUTPUT}"
-        echo "SHELL=${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}" >> "${GITHUB_OUTPUT}"
-
     - name: Download luarocks
       if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
-      shell: ${{ steps.globals.outputs.SHELL }}
+      shell: &shell
+        ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
       run: |
         git clone --depth 1 --branch "v${{ inputs.luarocksVersion }}" https://github.com/luarocks/luarocks.git ../luarocks/
 
@@ -39,19 +32,20 @@ runs:
       if: runner.os != 'Windows' && steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
       shell: bash
       working-directory: ../luarocks
+      env: &path_envs
+        INST_PATH: ${{ github.workspace }}/${{ inputs.installPath }}
+        LUA_PATH: ${{ github.workspace }}/${{ inputs.luaPath }}
       run: |
-        ./configure \
-          --prefix="${{ steps.globals.outputs.INST_PATH }}" \
-          --rocks-tree="${{ steps.globals.outputs.INST_PATH }}/systree" \
-          --with-lua="${{ steps.globals.outputs.LUA_PATH }}"
+        ./configure --prefix="$INST_PATH" --rocks-tree="${INST_PATH}/systree" --with-lua="$LUA_PATH"
         make && make install
 
     - name: Compile luarocks (Windows)
       if: runner.os == 'Windows' && steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
       shell: pwsh
+      env: *path_envs
       working-directory: ../luarocks
       run: |
-        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA "${{ steps.globals.outputs.LUA_PATH }}" /P "${{ steps.globals.outputs.INST_PATH }}"
+        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA "$Env:LUA_PATH" /P "$Env:INST_PATH"
 
     - name: Cache luarocks install directory
       if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
@@ -86,5 +80,5 @@ runs:
         echo PATH=%PATH% >> %GITHUB_ENV%
 
     - name: Check install
-      shell: ${{ steps.globals.outputs.SHELL }}
+      shell: *shell
       run: luarocks --version
