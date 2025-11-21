@@ -65,7 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
 
       - uses: ./.github/actions/prepare-env
         with:
@@ -91,6 +91,10 @@ jobs:
       - name: Install tree-sitter
         if: runner.os == 'Windows' && steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
         run: choco install tree-sitter --version ${{ env.ts-cli-version }}
+
+      - name: Fetch tree-sitter-python submodule
+        if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        run: git submodule update --remote -- path/to/submodule
 
       # Note: This is required for `luarocks test --prepare` to succeed.
       - name: Build treesitter grammar python

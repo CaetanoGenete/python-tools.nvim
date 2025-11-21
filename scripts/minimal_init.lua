@@ -17,7 +17,12 @@ else
 end
 
 vim.g.pytools_default_python_path = python_path
-vim.treesitter.language.add("python", { path = py_parser_path })
+
+-- Prevent the CI from logging errors, this is not an error by itself.
+local ok = pcall(vim.treesitter.language.add, "python", { path = py_parser_path })
+if not ok then
+	print("Could not load TS parser for python!")
+end
 
 require("python_tools").setup()
 
