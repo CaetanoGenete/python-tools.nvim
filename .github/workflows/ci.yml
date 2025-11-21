@@ -1,4 +1,4 @@
-name: Tests
+name: CI
 on:
   pull_request:
     paths-ignore:
@@ -22,8 +22,39 @@ env:
   ts-cli-version: 0.25.2
 
 jobs:
-  unit_tests:
+  static-checks:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/prepare-env
+        with:
+          nvim-rev: v0.11.0
+
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v2.3.0
+          args: --check .
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Install Lua language server
+        run: |
+          brew install lua-language-server
+          lua-language-server --version
+
+      - name: Check types
+        run: make check-types
+
+  unit-tests:
     name: unit tests
+    needs: static-checks
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
