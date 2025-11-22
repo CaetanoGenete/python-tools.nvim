@@ -28,6 +28,7 @@ endif()
 # Library targets
 
 add_library(tomlc17 STATIC "./src/tomlc17.c")
+set_target_properties(tomlc17 PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 target_compile_features(tomlc17 PRIVATE c_std_99)
 target_compile_definitions(tomlc17 PRIVATE _CRT_SECURE_NO_WARNINGS)
 
