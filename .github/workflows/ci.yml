@@ -117,7 +117,7 @@ jobs:
   release:
     name: release
     needs: tests
-    if: ${{ !failure() && inputs.release && github.ref == 'refs/heads/master' }}
+    if: ${{ !failure() && github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
