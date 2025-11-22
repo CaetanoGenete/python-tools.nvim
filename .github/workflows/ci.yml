@@ -52,8 +52,8 @@ jobs:
       - name: Check types
         run: make check-types
 
-  unit-tests:
-    name: unit tests
+  tests:
+    name: tests
     needs: static-checks
     runs-on: ${{ matrix.os }}
     strategy:
@@ -113,3 +113,14 @@ jobs:
         env:
           BUSTED_PROFILE: ci
         run: make test-all
+
+  release:
+    name: release
+    needs: tests
+    if: ${{ !failure() && inputs.release && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: simple
