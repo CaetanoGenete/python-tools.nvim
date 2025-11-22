@@ -1,4 +1,4 @@
-name: Tests
+name: CI
 on:
   pull_request:
     paths-ignore:
@@ -18,9 +18,43 @@ on:
       - ./docs/**
     branches:
       - master
+env:
+  ts-cli-version: 0.25.2
+
 jobs:
-  unit_tests:
+  static-checks:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/prepare-env
+        with:
+          nvim-rev: v0.11.0
+
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v2.3.0
+          args: --check .
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Install Lua language server
+        run: |
+          brew install lua-language-server
+          lua-language-server --version
+
+      - name: Check types
+        run: make check-types
+
+  unit-tests:
     name: unit tests
+    needs: static-checks
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -31,7 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
 
       - uses: ./.github/actions/prepare-env
         with:
@@ -47,13 +81,33 @@ jobs:
           CMAKE_PREFIX_PATH: .lua/
         run: make compile
 
+      - name: Restore tree-sitter-python-parser
+        id: cache-tree-sitter-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ./build-ts/
+          key: ${{ runner.os }}-${{ runner.arch }}-ts-py-parser
+
       - name: Install tree-sitter
-        if: runner.os == 'Windows'
-        run: choco install tree-sitter --version 0.25.2
+        if: runner.os == 'Windows' && steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        run: choco install tree-sitter --version ${{ env.ts-cli-version }}
+
+      - name: Fetch tree-sitter-python submodule
+        if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        run: git submodule update --init -- tree-sitter-python
 
       # Note: This is required for `luarocks test --prepare` to succeed.
       - name: Build treesitter grammar python
-        run: make compile-parser
+        if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        run: make build-ts
+
+      - name: Cache tree-sitter-cli directory
+        if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
+        id: cache-tree-sitter-save
+        uses: actions/cache/save@v4
+        with:
+          path: ./build-ts/
+          key: ${{ steps.cache-tree-sitter-restore.outputs.cache-primary-key }}
 
       - name: Run tests
         env:

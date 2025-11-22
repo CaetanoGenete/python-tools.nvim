@@ -1,22 +1,85 @@
 name: "Install luarocks"
 inputs:
-  version:
+  luarocksVersion:
     description: Luarocks version
-    required: false
+    required: true
     default: 3.12.2
+  luaPath:
+    description: Workspace relative path to Lua library
+    required: true
+  installPath:
+    description: Workspace relative path wherein to install luarocks
+    required: true
+    default: ./.luarocks
 runs:
   using: composite
   steps:
-    - name: Install Unix
-      if: runner.os != 'Windows'
-      uses: leafo/gh-actions-luarocks@v6
+    - name: Restore luarocks install
+      id: cache-luarocks-install-restore
+      uses: actions/cache/restore@v4
       with:
-        luarocksVersion: ${{ inputs.version }}
+        path: ${{ inputs.installPath }}
+        key: ${{ runner.os }}-${{ runner.arch }}-luarocks-install
 
-    - name: Install Windows
-      if: runner.os == 'Windows'
-      uses: ./.github/actions/install-luarocks-windows
+    - name: Download luarocks
+      if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
+      run: |
+        git clone --depth 1 --branch "v${{ inputs.luarocksVersion }}" https://github.com/luarocks/luarocks.git ../luarocks/
+
+    - name: Compile luarocks (Unix)
+      if: runner.os != 'Windows' && steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ../luarocks
+      env:
+        INST_PATH: ${{ github.workspace }}/${{ inputs.installPath }}
+        LUA_PATH: ${{ github.workspace }}/${{ inputs.luaPath }}
+      run: |
+        ./configure --prefix="$INST_PATH" --rocks-tree="${INST_PATH}/systree" --with-lua="$LUA_PATH"
+        make && make install
+
+    - name: Compile luarocks (Windows)
+      if: runner.os == 'Windows' && steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
+      shell: pwsh
+      env:
+        INST_PATH: ${{ github.workspace }}/${{ inputs.installPath }}
+        LUA_PATH: ${{ github.workspace }}/${{ inputs.luaPath }}
+      working-directory: ../luarocks
+      run: |
+        ./install.bat /MSVC /SELFCONTAINED /NOADMIN /Q /LUA "$Env:LUA_PATH" /P "$Env:INST_PATH"
+
+    - name: Cache luarocks install directory
+      if: steps.cache-luarocks-install-restore.outputs.cache-hit != 'true'
+      id: cache-luarocks-install-save
+      uses: actions/cache/save@v4
       with:
-        luarocksVersion: ${{ inputs.version }}
-        luaPath: ./.lua
-        installPath: ./.luarocks
+        path: ${{ inputs.installPath }}
+        key: ${{ steps.cache-luarocks-install-restore.outputs.cache-primary-key }}
+
+    - name: Set paths (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      working-directory: ${{ inputs.installPath }}/bin
+      run: |
+        eval `./luarocks path`
+
+        echo "LUA_CPATH=${LUA_CPATH}" >> "${GITHUB_ENV}"
+        echo "LUA_PATH=${LUA_PATH}" >> "${GITHUB_ENV}"
+        echo "PATH=${PATH}" >> "${GITHUB_ENV}"
+        echo "$(pwd)" >> "${GITHUB_PATH}"
+
+    - name: Set paths (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      working-directory: ${{ inputs.installPath }}
+      run: |
+        call luarocks.bat path > setenv.bat
+        call setenv.bat
+
+        echo LUA_CPATH=%LUA_CPATH% >> %GITHUB_ENV%
+        echo LUA_PATH=%LUA_PATH% >> %GITHUB_ENV%
+        echo PATH=%PATH% >> %GITHUB_ENV%
+
+    - name: Check install
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
+      run: luarocks --version

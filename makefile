@@ -26,11 +26,6 @@ compile: $(BUILD_PATH)
 
 $(PARSER_BUILD_PATH):
 	cmake -S ./tree-sitter-python/ -B $(PARSER_BUILD_PATH) -DCMAKE_BUILD_TYPE=release
-
-# Note: Make 'compile' PHONY to ensure compilation always happens, CMAKE and
-# its generators already handle caching
-.PHONY: compile-parser
-compile-parser: $(PARSER_BUILD_PATH)
 	cmake --build $(PARSER_BUILD_PATH) --config release
 	cmake --install $(PARSER_BUILD_PATH) --prefix $(PARSER_INSTALL_PATH)
 
@@ -58,7 +53,7 @@ $(PYENV_TARGETS):
 TEST_TARGETS:=$(patsubst %, test-%, $(SUPPORTED-VERSIONS))
 
 .PHONY: $(TEST_TARGETS)
-$(TEST_TARGETS): test-%: pyenv-% compile compile-parser
+$(TEST_TARGETS): test-%: pyenv-% compile $(PARSER_BUILD_PATH)
 	busted --run=$(BUSTED_PROFILE)
 
 .PHONY: test
@@ -70,7 +65,7 @@ test-all: $(TEST_TARGETS)
 ### Dev targets
 
 .PHONY: develop
-develop: $(RC_PATH) pyenv-3.8 compile compile-parser
+develop: $(RC_PATH) pyenv-3.8 compile $(PARSER_BUILD_PATH)
 
 .PHONY: test-dev
 test-dev: check-types check-formatting test

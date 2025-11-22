@@ -13,10 +13,10 @@
 	#define LIB_EXPORT
 #endif
 
-struct redirect_state {
+typedef struct {
 	int orig_src_fd;
 	int dup_src_fd;
-};
+} redirect_state;
 
 static int l_redirect(lua_State *L)
 {
@@ -34,10 +34,11 @@ static int l_redirect(lua_State *L)
 	fflush(dst);
 	dup2(fileno(dst), src_fd);
 
-	struct redirect_state data = {
+	redirect_state data = {
 	  .orig_src_fd = src_fd,
 	  .dup_src_fd = dup_src_fd,
 	};
+
 	void *userdata = lua_newuserdata(L, sizeof(data));
 	memcpy(userdata, &data, sizeof(data));
 
@@ -46,7 +47,7 @@ static int l_redirect(lua_State *L)
 
 static int l_recover(lua_State *L)
 {
-	struct redirect_state state = *(struct redirect_state *)lua_touserdata(L, 1);
+	redirect_state state = *(redirect_state *)lua_touserdata(L, 1);
 
 	dup2(state.dup_src_fd, state.orig_src_fd);
 	close(state.dup_src_fd);

@@ -3,6 +3,7 @@ local M = {}
 
 ---@diagnostic disable-next-line: deprecated
 local unpack = unpack or table.unpack
+
 -- Bad things seem to happen if the coroutine is resumed during fast events.
 local safe_resume = vim.schedule_wrap(coroutine.resume)
 
