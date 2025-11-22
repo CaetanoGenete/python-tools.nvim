@@ -94,7 +94,7 @@ jobs:
 
       - name: Fetch tree-sitter-python submodule
         if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
-        run: git submodule update --init --remote -- tree-sitter-python
+        run: git submodule update --init -- tree-sitter-python
 
       # Note: This is required for `luarocks test --prepare` to succeed.
       - name: Build treesitter grammar python
