@@ -1,7 +1,15 @@
 import json
 import sys
-from typing import Any, Dict, List, TypedDict
-from importlib.util import spec_from_file_location, module_from_spec
+
+EXIT_OK = 0
+EXIT_FAIL_UNEXPECTED = 1
+EXIT_FAIL_EXEC_MODULE = 2
+EXIT_PYTHON_VERSION = 3
+
+if sys.version_info < (3, 8):
+    sys.exit(EXIT_PYTHON_VERSION)
+else:
+    from typing import Any, Dict, List, TypedDict
 
 try:
     import setuptools
@@ -56,13 +64,7 @@ def mock_setup(**args: Dict[str, Any]) -> None:
 
 setuptools.setup = mock_setup
 
-spec = spec_from_file_location("setuppy_module", sys.argv[1])
-if spec is None:
-    sys.exit(2)
-
-foo = module_from_spec(spec)
-
-if spec.loader is None:
-    sys.exit(3)
-
-spec.loader.exec_module(foo)
+try:
+    exec(sys.argv[1])
+except Exception:
+    sys.exit(EXIT_FAIL_EXEC_MODULE)

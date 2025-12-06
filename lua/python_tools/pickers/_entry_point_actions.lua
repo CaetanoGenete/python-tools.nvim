@@ -18,16 +18,19 @@ local actions = require("telescope.actions")
 function M.aset_entry_point_location(entry, opts)
 	entry.state = "pending"
 
-	local ok, ep
+	local ok, ep, errmsg
 	if opts.use_importlib then
-		ok, ep = pcall(ep_tools.aentry_point_location_importlib, entry.value, opts.python_path)
+		ok, ep, errmsg = pcall(ep_tools.aentry_point_location_importlib, entry.value, opts.python_path)
 	else
-		ok, ep = pcall(ep_tools.aentry_point_location_ts, entry.value, opts.search_dir)
+		ok, ep, errmsg = pcall(ep_tools.aentry_point_location_ts, entry.value, opts.search_dir)
 	end
 
-	if ok and ep ~= nil then
-		entry.filename = ep.filename
-		entry.lnum = ep.lineno
+	if ok then
+		if ep ~= nil then
+			entry.filename = ep.filename
+			entry.lnum = ep.lineno
+		end
+		entry.errmsg = errmsg
 	end
 
 	entry.state = "done"

@@ -99,6 +99,7 @@ local M = {}
 ---@field state "done"|"pending"|"debounce"|nil
 ---@field filename string?
 ---@field lnum integer?
+---@field errmsg string?
 
 ---@class PreviewerState
 ---@field bufnr integer
@@ -121,12 +122,14 @@ local function render_entry(state, entry, opts)
 			file_encoding = opts.file_encoding,
 		})
 	else
-		vim.schedule_wrap(putils.set_preview_message)(
-			state.bufnr,
-			state.winid,
-			"Cannot find entrypoint!",
-			opts.preview.msg_bg_fillchar
-		)
+		vim.schedule(function()
+			putils.set_preview_message(
+				state.bufnr,
+				state.winid,
+				"Cannot find entrypoint!",
+				opts.preview.msg_bg_fillchar
+			)
+		end)
 	end
 end
 

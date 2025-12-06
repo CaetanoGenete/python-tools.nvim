@@ -127,9 +127,10 @@ end)
 
 describe("aentry_points_setuppy", function()
 	async(it, "should list all entry_points from mock-setup-py-repo", function()
-		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
-		local actual = assert(ep.aentry_points_setuppy(search_dir))
+		local setuppy_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
+		local src = assert(require("python_tools._async").read_file(setuppy_dir))
 
+		local actual = assert(ep.aentry_points_setuppy(src))
 		local expected = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json")
 		sort_entry_points(actual)
 
@@ -137,10 +138,9 @@ describe("aentry_points_setuppy", function()
 	end)
 
 	async(it, "should fail if file is not the right format", function()
-		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir", "placeholder.txt")
-		local actual, err = ep.aentry_points_setuppy(search_dir)
+		local actual, err = ep.aentry_points_setuppy("Invalid python string.")
 
-		assert.no.same(err, nil)
+		assert.same(err, "Failed to execute `setup.py` file!")
 		assert.same(actual, nil)
 	end)
 end)
@@ -188,7 +188,7 @@ local function aep_loc(def, test_case)
 end
 
 for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
-	-- Skip expected failing entries
+	-- fixtures with nil line numbers are for negative cases, filter them out here.
 	local fixt = vim.fn.filter(opts.fixture, function(_, value)
 		return value.lineno ~= vim.NIL
 	end)
