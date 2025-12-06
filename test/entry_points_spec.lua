@@ -138,10 +138,9 @@ describe("aentry_points_setuppy", function()
 	end)
 
 	async(it, "should fail if file is not the right format", function()
-		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "some_other_dir", "placeholder.txt")
-		local actual, err = ep.aentry_points_setuppy(search_dir)
+		local actual, err = ep.aentry_points_setuppy("Invalid python string.")
 
-		assert.no.same(err, nil)
+		assert.same(err, "Failed to execute `setup.py` file!")
 		assert.same(actual, nil)
 	end)
 end)
