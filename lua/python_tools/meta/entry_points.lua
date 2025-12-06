@@ -101,27 +101,27 @@ end
 --- Defaults to binary on PATH.
 ---@field python_path string?
 
---- Returns all entry-points defined in the file pointed at by `project_file`.
+--- Returns all entry-points defined in `content`.
 ---
---- Said `file` must be a valid python script.
+--- `content` must be a valid python script.
 ---
 --- For reading a _pyproject.toml_ file, see:
 --- [entry_points_pyproject](lua://entry_points.entry_points_pyproject)
 ---
 ---@async
 ---@nodiscard
----@param project_file string Path to *setup.py*.
+---@param content string python text from which to extract entry-points.
 ---@param options EntryPointsSetuppyOptions? Optional filter.
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
-function M.aentry_points_setuppy(project_file, options)
+function M.aentry_points_setuppy(content, options)
 	options = options or {}
 
 	return pyscripts.alist_entry_points_setuppy(
 		options.python_path or pyutils.default_path(),
-		{ project_file, options.group }
+		{ content, options.group }
 	)
 end
 
@@ -143,12 +143,14 @@ function M.entry_points_pyproject(content, group)
 	return require("python_tools.meta._pyproject").entry_points(content, group)
 end
 
+local PROJECT_FILE_BASENAMES = { "setup.py", "pyproject.toml" }
+
 ---@async
 ---@nodiscard
 ---@param search_dir string
 ---@return string? project_file, string? errmsg
 local function afind_project_file(search_dir)
-	return async.findfile(search_dir, { "setup.py", "pyproject.toml" })
+	return async.findfile(search_dir, PROJECT_FILE_BASENAMES)
 end
 
 ---@class EntryPointsTSOptions : EntryPointsSetuppyOptions
@@ -189,29 +191,22 @@ end
 function M.aentry_points(options)
 	options = options or {}
 
-	local search_dir = options.search_dir or vim.fn.getcwd()
-
-	local project_file, find_err = afind_project_file(search_dir)
+	local project_file, find_err = afind_project_file(options.search_dir or vim.fn.getcwd())
 	if not project_file then
 		return nil, find_err
 	end
 
+	local src, read_err = async.read_file(project_file)
+	if src == nil then
+		return nil, read_err
+	end
+
 	if vim.endswith(project_file, ".py") then
-		return M.aentry_points_setuppy(project_file, options)
+		return M.aentry_points_setuppy(src, options)
 	end
 
 	if vim.endswith(project_file, ".toml") then
-		local src, read_err = async.read_file(project_file)
-		if src == nil then
-			return nil, read_err
-		end
-
-		local result, eps_err = M.entry_points_pyproject(src, options.group)
-		if result == nil then
-			return nil, eps_err
-		end
-
-		return result, nil
+		return M.entry_points_pyproject(src, options.group)
 	end
 
 	error(("Unexpected file extension: %s"):format(project_file))

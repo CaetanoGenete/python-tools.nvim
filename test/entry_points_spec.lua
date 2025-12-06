@@ -127,9 +127,10 @@ end)
 
 describe("aentry_points_setuppy", function()
 	async(it, "should list all entry_points from mock-setup-py-repo", function()
-		local search_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
-		local actual = assert(ep.aentry_points_setuppy(search_dir))
+		local setuppy_dir = vim.fs.joinpath(MOCK_SETUP_PY_REPO_PATH, "setup.py")
+		local src = assert(require("python_tools._async").read_file(setuppy_dir))
 
+		local actual = assert(ep.aentry_points_setuppy(src))
 		local expected = ep_def_fixture("entry_points", "mock_setup_py_entry_points.json")
 		sort_entry_points(actual)
 

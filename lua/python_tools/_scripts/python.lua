@@ -38,11 +38,8 @@ M.alist_entry_points_importlib = make_ascript("list_entry_points_importlib.py", 
 
 M.alist_entry_points_setuppy = make_ascript("list_entry_points_setuppy.py", vim.json.decode, {
 	[1] = "Unexpected failure!",
-	[2] = "Could not import module `importlib`, please ensure it's installed.",
-	[3] = "Failed to load `setup.py` module!",
-	[4] = "Failed to load `setup.py` module!",
-	[5] = "Failed to execute `setup.py` file!",
-	[6] = "Listing entrypoints requires python version >=3.8, please update!",
+	[2] = "Failed to execute `setup.py` file!",
+	[3] = "Listing entrypoints requires python version >=3.8, please update!",
 })
 
 M.afind_entry_point_importlib = make_ascript("find_entry_point_importlib.py", vim.json.decode, {
