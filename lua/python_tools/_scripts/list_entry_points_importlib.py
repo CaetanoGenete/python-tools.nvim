@@ -1,8 +1,21 @@
-from importlib.metadata import entry_points
 from itertools import chain
 import json
 import sys
-from typing import List, TypedDict
+
+EXIT_OK = 0
+EXIT_FAIL_UNEXPECTED = 1
+EXIT_FAIL_IMPORT_IMPORTLIB = 2
+EXIT_FAIL_PYTHON_VERSION = 3
+
+if sys.version_info < (3, 8):
+    sys.exit(EXIT_FAIL_PYTHON_VERSION)
+else:
+    from typing import List, TypedDict
+
+try:
+    from importlib.metadata import entry_points
+except Exception:
+    sys.exit(EXIT_FAIL_IMPORT_IMPORTLIB)
 
 
 class EntryPoint(TypedDict):

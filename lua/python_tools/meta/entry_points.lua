@@ -73,10 +73,10 @@ local M = {}
 function M.aentry_points_importlib(options)
 	options = options or {}
 
-	local python_path = options.python_path or pyutils.default_path()
-
-	local result = pyscripts.alist_entry_points_importlib(python_path, { options.group })
-	return result, "Could not find entry_points"
+	return pyscripts.alist_entry_points_importlib(
+		options.python_path or pyutils.default_path(),
+		{ options.group }
+	)
 end
 
 ---@class EntryPointsSetuppyOptions
@@ -119,10 +119,10 @@ end
 function M.aentry_points_setuppy(project_file, options)
 	options = options or {}
 
-	local python_path = options.python_path or pyutils.default_path()
-
-	local result = pyscripts.alist_entry_points_setuppy(python_path, { project_file, options.group })
-	return result, "Could not find entry_points"
+	return pyscripts.alist_entry_points_setuppy(
+		options.python_path or pyutils.default_path(),
+		{ project_file, options.group }
+	)
 end
 
 --- Returns all entry-points in `content`.
@@ -148,8 +148,7 @@ end
 ---@param search_dir string
 ---@return string? project_file, string? errmsg
 local function afind_project_file(search_dir)
-	local project_file, find_err = async.findfile(search_dir, { "setup.py", "pyproject.toml" })
-	return project_file, find_err
+	return async.findfile(search_dir, { "setup.py", "pyproject.toml" })
 end
 
 ---@class EntryPointsTSOptions : EntryPointsSetuppyOptions
@@ -276,7 +275,7 @@ local function _aentry_point_location_ts(def, file_path)
 		return nil, read_err
 	end
 
-	local ts_query = string.format(ROOT_ATTR_QUERY_STRING, attr)
+	local ts_query = ROOT_ATTR_QUERY_STRING:format(attr)
 	local parsed_ts_query = vim.treesitter.query.parse("python", ts_query)
 
 	local parser = vim.treesitter.get_string_parser(file_content, "python")
@@ -289,7 +288,11 @@ local function _aentry_point_location_ts(def, file_path)
 	end
 
 	if last_match == -1 then
-		return nil, "Could not find attr!"
+		return nil,
+			("Cannot find attribute `%s` for module `%s`!"):format(
+				attr,
+				vim.fs.relpath(vim.fn.getcwd(), file_path)
+			)
 	end
 
 	result.lineno = last_match
@@ -350,7 +353,7 @@ function M.aentry_point_location_ts(def, search_dir)
 	end
 
 	if file_path == nil then
-		return nil, ("Could not find python file from the module path '%s'"):format(module_path)
+		return nil, ("Could not find python file from the module path `%s`"):format(module_path)
 	end
 
 	return _aentry_point_location_ts(def, file_path)
@@ -375,7 +378,7 @@ end
 ---
 --- None of these issues appear when fetching the entry-point using
 --- tree-sitter, as no dependency resolution occurs. However, it cannot follow
---- chains of attributes, such as `a.b.c`.
+--- chains of attributes, such as `a.b.c`. When such a case is encountered, importlib is used.
 ---
 ---@async
 ---@param def EntryPointDef The entry-point whose location to discover. Can be obtained, for
@@ -389,19 +392,17 @@ end
 function M.aentry_point_location_importlib(def, python_path)
 	python_path = python_path or pyutils.default_path()
 
-	local file_path = pyscripts.afind_entry_point_origin_importlib(python_path, { def.value[1] })
+	local file_path, err = pyscripts.afind_entry_point_origin_importlib(python_path, { def.value[1] })
+	if file_path == nil then
+		return nil, err
+	end
 
 	local ok, result = pcall(_aentry_point_location_ts, def, file_path)
 	if ok and result ~= nil then
 		return result, nil
 	end
 
-	local ep, errcode = pyscripts.afind_entry_point_importlib(python_path, { def.name, def.group })
-	if errcode == 0 then
-		return ep, nil
-	end
-
-	return nil, "could not find entry-point"
+	return pyscripts.afind_entry_point_importlib(python_path, { def.name, def.group })
 end
 
 return M

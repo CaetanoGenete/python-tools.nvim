@@ -188,7 +188,7 @@ local function aep_loc(def, test_case)
 end
 
 for _, opts in ipairs(AENTRY_POINT_LOCATION_CASES) do
-	-- Skip expected failing entries
+	-- fixtures with nil line numbers are for negative cases, filter them out here.
 	local fixt = vim.fn.filter(opts.fixture, function(_, value)
 		return value.lineno ~= vim.NIL
 	end)

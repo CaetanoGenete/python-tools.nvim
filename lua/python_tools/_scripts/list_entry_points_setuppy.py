@@ -1,7 +1,23 @@
 import json
 import sys
-from typing import Any, Dict, List, TypedDict
-from importlib.util import spec_from_file_location, module_from_spec
+
+EXIT_OK = 0
+EXIT_FAIL_UNEXPECTED = 1
+EXIT_FAIL_IMPORT_IMPORTLIB = 2
+EXIT_FAIL_FIND_SPEC = 3
+EXIT_FAIL_BAD_SPEC = 4
+EXIT_FAIL_EXEC_MODULE = 5
+EXIT_PYTHON_VERSION = 6
+
+if sys.version_info < (3, 8):
+    sys.exit(EXIT_PYTHON_VERSION)
+else:
+    from typing import Any, Dict, List, TypedDict
+
+try:
+    from importlib.util import spec_from_file_location, module_from_spec
+except Exception:
+    sys.exit(EXIT_FAIL_IMPORT_IMPORTLIB)
 
 try:
     import setuptools
@@ -58,11 +74,14 @@ setuptools.setup = mock_setup
 
 spec = spec_from_file_location("setuppy_module", sys.argv[1])
 if spec is None:
-    sys.exit(2)
+    sys.exit(EXIT_FAIL_FIND_SPEC)
 
 foo = module_from_spec(spec)
 
 if spec.loader is None:
-    sys.exit(3)
+    sys.exit(EXIT_FAIL_BAD_SPEC)
 
-spec.loader.exec_module(foo)
+try:
+    spec.loader.exec_module(foo)
+except Exception:
+    sys.exit(EXIT_FAIL_EXEC_MODULE)
