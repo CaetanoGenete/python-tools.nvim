@@ -32,19 +32,20 @@ end
 
 M.alist_entry_points_importlib = make_ascript("list_entry_points_importlib.py", vim.json.decode, {
 	[1] = "Unexpected failure!",
-	[2] = "Could not import module `importlib`, please ensure it's installed.",
+	[2] = "Could not import module `importlib.metadata`, please ensure it's available in the environment.",
 	[3] = "Listing entrypoints requires python version >=3.8, please update!",
 })
 
 M.alist_entry_points_setuppy = make_ascript("list_entry_points_setuppy.py", vim.json.decode, {
 	[1] = "Unexpected failure!",
-	[2] = "Failed to execute `setup.py` file!",
+	[2] = "Could not import module `importlib.util`, please ensure it's available in the environment.",
 	[3] = "Listing entrypoints requires python version >=3.8, please update!",
+	[4] = "Failed to execute `setup.py` file!",
 })
 
 M.afind_entry_point_importlib = make_ascript("find_entry_point_importlib.py", vim.json.decode, {
 	[1] = "Unexpected failure!",
-	[2] = "Could not import module `importlib`, please ensure it's installed.",
+	[2] = "Could not import module `importlib.metadata`, please ensure it's available in the environment.",
 	[3] = "Could not find entrypoint!",
 	[4] = "Failed to file containing entrypoint!",
 	[5] = "Failed to line number of entrypoint object!",
@@ -54,7 +55,7 @@ M.afind_entry_point_importlib = make_ascript("find_entry_point_importlib.py", vi
 M.afind_entry_point_origin_importlib =
 	make_ascript("find_entry_point_origin_importlib.py", vim.fs.normalize, {
 		[1] = "Unexpected failure!",
-		[2] = "Could not import module `importlib`, please ensure it's installed.",
+		[2] = "Could not import module `importlib.util`, please ensure it's available in the environment.",
 		[3] = "Could not find entrypoint origin.",
 	})
 

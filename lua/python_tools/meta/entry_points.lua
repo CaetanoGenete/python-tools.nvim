@@ -101,27 +101,40 @@ end
 --- Defaults to binary on PATH.
 ---@field python_path string?
 
---- Returns all entry-points defined in `content`.
----
---- `content` must be a valid python script.
+--- Returns all entry-points defined in `setup.py` at `setuppy_path`.
 ---
 --- For reading a _pyproject.toml_ file, see:
 --- [entry_points_pyproject](lua://entry_points.entry_points_pyproject)
 ---
+--- **NOTE**: The interface for this function is different from its _pyproject.toml_ counterpart, in
+--- that it accepts a path as opposed to the file's content, because python modules are aware of
+--- their location on the filesystem.
+---
+--- For example, the following script depends on `some-file.txt` existing in the same directory as
+--- itself (Not necessarily the working-directory):
+---
+--- ```python
+---	import os
+---
+--- dir = os.path.dirname(__file__)
+--- with open(dir + "/some-file.txt", "r") as f:
+---     print(f.read())
+--- ```
+---
 ---@async
 ---@nodiscard
----@param content string python text from which to extract entry-points.
+---@param setuppy_path string Path to setup.py file, from which to extract entry-points.
 ---@param options EntryPointsSetuppyOptions? Optional filter.
 ---@return EntryPointDef[]? entrypoints, string? errmsg There are two possible cases:
 ---	- failure -> `entrypoints` will be `nil` and `errmsg` will detail the reason for failure.
 ---	- success -> `entrypoints` will be populated with the discovered entry points, or an empty table
 ---	  if none could be found.
-function M.aentry_points_setuppy(content, options)
+function M.aentry_points_setuppy(setuppy_path, options)
 	options = options or {}
 
 	return pyscripts.alist_entry_points_setuppy(
 		options.python_path or pyutils.default_path(),
-		{ content, options.group }
+		{ setuppy_path, options.group }
 	)
 end
 
@@ -196,16 +209,16 @@ function M.aentry_points(options)
 		return nil, find_err
 	end
 
-	local src, read_err = async.read_file(project_file)
-	if src == nil then
-		return nil, read_err
-	end
-
 	if vim.endswith(project_file, ".py") then
-		return M.aentry_points_setuppy(src, options)
+		return M.aentry_points_setuppy(project_file, options)
 	end
 
 	if vim.endswith(project_file, ".toml") then
+		local src, read_err = async.read_file(project_file)
+		if src == nil then
+			return nil, read_err
+		end
+
 		return M.entry_points_pyproject(src, options.group)
 	end
 

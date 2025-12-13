@@ -1,6 +1,7 @@
 -- Use the NeoVim runtime to generate a LuaLS rc file.
 
-local lua_path = os.getenv("LUA_PATH")
+local LUA_PATH = os.getenv("LUA_PATH")
+local LUA_PLUGINS_DIR = vim.fs.abspath("./plugins")
 
 local rtps = {
 	"./lua/?.lua",
@@ -10,8 +11,8 @@ local rtps = {
 }
 
 -- Add all items in LUA_PATH (if it exists)
-if lua_path ~= nil then
-	rtps = vim.list_extend(rtps, vim.split(lua_path, ";", { trimempty = true }))
+if LUA_PATH ~= nil then
+	rtps = vim.list_extend(rtps, vim.split(LUA_PATH, ";", { trimempty = true }))
 end
 
 local libs = {
@@ -21,7 +22,7 @@ local libs = {
 
 -- Add addons
 for _, dir in ipairs({ "busted", "luassert" }) do
-	table.insert(libs, vim.fs.abspath(("./lua-ls-plugins/%s/library"):format(dir)))
+	table.insert(libs, vim.fs.abspath(("%s/%s/library"):format(LUA_PLUGINS_DIR, dir)))
 end
 
 -- Add neovim runtime paths (For best reproducability, execute this script with the --clean flag)
@@ -34,8 +35,8 @@ local ignore_dirs = {
 }
 
 -- Ignore plenary...
-if lua_path ~= nil then
-	for _, path in ipairs(vim.split(lua_path, ";", { trimempty = true, plain = true })) do
+if LUA_PATH ~= nil then
+	for _, path in ipairs(vim.split(LUA_PATH, ";", { trimempty = true, plain = true })) do
 		local dir = vim.fs.normalize(vim.fs.dirname(path))
 		for _, match in ipairs(vim.fs.find("plenary", { type = "directory", path = dir })) do
 			vim.print(("Found plenary at: '%s', adding to ignore list..."):format(match))
@@ -62,7 +63,7 @@ local luarc = {
 		ignoreDir = ignore_dirs,
 		library = vim.tbl_map(vim.fs.normalize, libs),
 	},
-	userThirdParty = { vim.fs.normalize(vim.fs.abspath("./lua-ls-addons")) },
+	userThirdParty = { LUA_PLUGINS_DIR },
 }
 
 io.stdout:write(vim.json.encode(luarc))

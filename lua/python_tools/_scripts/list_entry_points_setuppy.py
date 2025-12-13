@@ -3,13 +3,19 @@ import sys
 
 EXIT_OK = 0
 EXIT_FAIL_UNEXPECTED = 1
-EXIT_FAIL_EXEC_MODULE = 2
+EXIT_FAIL_IMPORTLIB = 2
 EXIT_PYTHON_VERSION = 3
+EXIT_FAIL_EXEC_MODULE = 4
 
 if sys.version_info < (3, 8):
     sys.exit(EXIT_PYTHON_VERSION)
 else:
     from typing import Any, Dict, List, TypedDict
+
+try:
+    from importlib.util import spec_from_file_location, module_from_spec
+except:
+    sys.exit(EXIT_FAIL_IMPORTLIB)
 
 try:
     import setuptools
@@ -64,7 +70,17 @@ def mock_setup(**args: Dict[str, Any]) -> None:
 
 setuptools.setup = mock_setup
 
+
+spec = spec_from_file_location("setuppy_module", sys.argv[1])
+if spec is None:
+    sys.exit(EXIT_FAIL_EXEC_MODULE)
+
+foo = module_from_spec(spec)
+
+if spec.loader is None:
+    sys.exit(EXIT_FAIL_EXEC_MODULE)
+
 try:
-    exec(sys.argv[1])
+    spec.loader.exec_module(foo)
 except Exception:
     sys.exit(EXIT_FAIL_EXEC_MODULE)

@@ -65,7 +65,7 @@ test-all: $(TEST_TARGETS)
 ### Dev targets
 
 .PHONY: develop
-develop: $(RC_PATH) pyenv-3.8 compile $(PARSER_BUILD_PATH)
+develop: $(RC_PATH) pyenv-3.12 compile $(PARSER_BUILD_PATH)
 
 .PHONY: test-dev
 test-dev: check-types check-formatting test
