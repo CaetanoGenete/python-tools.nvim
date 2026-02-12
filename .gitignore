@@ -13,3 +13,9 @@ __pycache__
 
 # clangd cache
 /.cache/
+
+# lls-addons
+/.plugins/
+
+# tree-sitter-python
+/.tree-sitter-python/
