@@ -1,28 +1,33 @@
 BUSTED_PROFILE?=default
 
-# Python versions to test against
-SUPPORTED-VERSIONS:=3.8 3.9 3.10 3.11 3.12 3.13
-
-MINIMAL_INIT:=./scripts/minimal_init.lua
+MINIMAL_INIT:=scripts/minimal_init.lua
 RC_PATH:=.luarc.json
 
-BUILD_PATH:=./build
-INSTALL_PATH:=./lib/
+BUILD_PATH:=build
+INSTALL_PATH:=lib/
 
 PARSER_VERSION=v0.25.0
-PARSER_CLONE_PATH:=./.tree-sitter-python/
-PARSER_BUILD_PATH:=./build-ts
+PARSER_CLONE_PATH:=.tree-sitter-python
+PARSER_BUILD_PATH:=build-ts
 PARSER_INSTALL_PATH:=$(PARSER_BUILD_PATH)/install
 
-LLS_PLUGINS_DIR = ./.plugins/
+LLS_PLUGINS_DIR:=.plugins/
+
+MOCK_REPO_DIR:=test/fixtures/mock-repo/
+
+ifeq ($(OS),Windows_NT)
+	RMDIR:=rmdir /s /q
+	RM:=del /f /q
+else
+	RMDIR:=rm -rf
+	RM:=rm -f
+endif
 
 ### clib targets
 
 $(BUILD_PATH):
 	cmake -S . -B $@ -DCMAKE_BUILD_TYPE=release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_REDIRECTLIB=ON
 
-# Note: Make 'compile' PHONY to ensure compilation always happens, CMAKE and
-# its generators already handle caching
 .PHONY: compile
 compile: $(BUILD_PATH)
 	cmake --build $(BUILD_PATH) --config release
@@ -35,11 +40,8 @@ $(PARSER_CLONE_PATH):
 
 $(PARSER_BUILD_PATH): $(PARSER_CLONE_PATH)
 	cmake -S $(PARSER_CLONE_PATH) -B $@ -DCMAKE_BUILD_TYPE=release
-	cmake --build $@ --config release
-	cmake --install $@ --prefix $(PARSER_INSTALL_PATH)
-
-.PHONY: compile-parser
-compile-parser: $(PARSER_BUILD_PATH)
+	cmake --build $(PARSER_BUILD_PATH) --config release
+	cmake --install $(PARSER_BUILD_PATH) --prefix $(PARSER_INSTALL_PATH)
 
 ### Lint targets
 
@@ -65,30 +67,32 @@ check-formatting:
 
 ### Test targets
 
-PYENV_TARGETS:=$(patsubst %, pyenv-%, $(SUPPORTED-VERSIONS))
-
-.PHONY: $(PYENV_TARGETS)
-$(PYENV_TARGETS):
-	uv sync -p $(subst pyenv-,,$@) --project ./test/fixtures/mock-repo/
-
-TEST_TARGETS:=$(patsubst %, test-%, $(SUPPORTED-VERSIONS))
-
-.PHONY: $(TEST_TARGETS)
-$(TEST_TARGETS): test-%: pyenv-% compile $(PARSER_BUILD_PATH)
-	busted --run=$(BUSTED_PROFILE)
-
 .PHONY: test-all
-test-all: $(TEST_TARGETS)
+test-all: compile $(PARSER_BUILD_PATH)
+	tox run-parallel
 
 ### Dev targets
 
 .PHONY: develop
-develop: $(RC_PATH) pyenv-3.12 compile compile-parser
+develop: $(RC_PATH) compile $(PARSER_BUILD_PATH)
+
+.PHONY: format
+format:
+	stylua .
 
 .PHONY: test-dev
-test-dev: develop check-types check-formatting test-3.12
+test-dev: develop check-types check-formatting
+	tox -e 3.12
 
 .PHONY: dev-container
 dev-container:
 	docker build -t pytools .
 	docker run -it pytools
+
+### clean
+
+clean:
+	-$(RMDIR) $(BUILD_PATH)
+	-$(RMDIR) $(PARSER_BUILD_PATH)
+	-$(RMDIR) .tox
+	-$(RM) $(RC_PATH)

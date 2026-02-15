@@ -1,7 +1,7 @@
 -- Use the NeoVim runtime to generate a LuaLS rc file.
 
 local LUA_PATH = os.getenv("LUA_PATH")
-local LUA_PLUGINS_DIR = vim.fs.abspath("./.plugins")
+local LUA_LS_PLUGINS_DIR = vim.fs.abspath("./.plugins")
 
 local rtps = {
 	"./lua/?.lua",
@@ -22,7 +22,7 @@ local libs = {
 
 -- Add addons
 for _, dir in ipairs({ "busted", "luassert" }) do
-	table.insert(libs, vim.fs.abspath(vim.fs.joinpath(LUA_PLUGINS_DIR, dir, "library")))
+	table.insert(libs, vim.fs.abspath(vim.fs.joinpath(LUA_LS_PLUGINS_DIR, dir, "library")))
 end
 
 -- Add neovim runtime paths (For best reproduceability, execute this script with the --clean flag)
@@ -63,7 +63,7 @@ local luarc = {
 		ignoreDir = ignore_dirs,
 		library = vim.tbl_map(vim.fs.normalize, libs),
 	},
-	userThirdParty = { LUA_PLUGINS_DIR },
+	userThirdParty = { LUA_LS_PLUGINS_DIR },
 }
 
 io.stdout:write(vim.json.encode(luarc))

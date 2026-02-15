@@ -18,8 +18,6 @@ on:
       - ./docs/**
     branches:
       - master
-env:
-  ts-cli-version: 0.25.2
 
 permissions:
   contents: write
@@ -31,8 +29,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
 
       - uses: ./.github/actions/prepare-env
         with:
@@ -67,19 +63,21 @@ jobs:
         os: [ubuntu-22.04, windows-2022]
         rev: [v0.11.0]
 
+    env:
+      PLATFORM_TRIPLET: ${{ toLower(format('{0}-{1}', runner.os, runner.arch)) }}
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: false
 
       - uses: ./.github/actions/prepare-env
         with:
           nvim-rev: ${{ matrix.rev }}
 
-      - name: Install UV
+      - name: Install TOX (using uv)
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+        run: uv tool install tox --with tox-uv
 
       - name: Build lib
         env:
@@ -91,22 +89,18 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./build-ts/
-          key: ${{ runner.os }}-${{ runner.arch }}-ts-py-parser
+          key: ${{ env.PLATFORM_TRIPLET }}-ts-py-parser
 
       - name: Install tree-sitter
         if: runner.os == 'Windows' && steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
-        run: choco install tree-sitter --version ${{ env.ts-cli-version }}
-
-      - name: Fetch tree-sitter-python submodule
-        if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
-        run: git submodule update --init -- tree-sitter-python
+        run: choco install tree-sitter --version 0.25.2
 
       # Note: This is required for `luarocks test --prepare` to succeed.
       - name: Build treesitter grammar python
         if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
         run: make build-ts
 
-      - name: Cache tree-sitter-cli directory
+      - name: Cache tree-sitter directory
         if: steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
         id: cache-tree-sitter-save
         uses: actions/cache/save@v4

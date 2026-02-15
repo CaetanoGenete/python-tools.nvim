@@ -8,6 +8,7 @@ RUN apt update && apt install -y cmake lua5.1 luarocks git \
 	&& cp -r ./squashfs-root/usr/* /usr/ \
 	&& wget -qO- https://astral.sh/uv/install.sh | sh \
 	&& /root/.local/bin/uv tool install git+https://github.com/johnnymorganz/stylua \
+	&& /root/.local/bin/uv tool install tox --with tox-uv \
 	&& wget -qO- https://github.com/LuaLS/lua-language-server/releases/download/3.15.0/lua-language-server-3.15.0-linux-x64.tar.gz | tar -xvz --one-top-level=lua-ls \
 	&& cp -r ./lua-ls/* /usr/
 

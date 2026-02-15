@@ -1,0 +1,9 @@
+requires = ["tox>=4.19"]
+env_list = ["3.13", "3.12", "3.11", "3.10", "3.9", "3.8"]
+
+[env_run_base]
+description = "Run tests with python {base_python}"
+deps = ["-e {tox_root}/test/fixtures/mock-repo/"]
+pass_env = ["LUA_PATH", "LUA_CPATH"]
+allowlist_externals = ["busted"]
+commands = [["busted"]]
