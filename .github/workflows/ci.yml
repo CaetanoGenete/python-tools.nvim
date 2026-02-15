@@ -69,14 +69,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Calculate Triplet
+        run: echo "PLATFORM_TRIPLET=${{ toLower(format('{0}-{1}', runner.os, runner.arch)) }}" >> $GITHUB_ENV
+
       - uses: ./.github/actions/prepare-env
         with:
           nvim-rev: ${{ matrix.rev }}
 
-      - name: Install TOX (using uv)
+      - name: Install UV
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+
+      - name: Install TOX
         run: uv tool install tox --with tox-uv
 
       - name: Build lib
