@@ -17,3 +17,6 @@ __pycache__
 # version control
 /.git/
 /.github/
+
+# TOX environment
+/.tox/

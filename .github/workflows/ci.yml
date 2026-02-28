@@ -66,9 +66,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Calculate Triplet
-        run: echo "PLATFORM_TRIPLET=${{ format('{0}-{1}', runner.os, runner.arch) }}" >> $GITHUB_ENV
-
       - uses: ./.github/actions/prepare-env
         with:
           nvim-rev: ${{ matrix.rev }}
@@ -91,7 +88,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./build-ts/
-          key: ${{ env.PLATFORM_TRIPLET }}-ts-py-parser
+          key: ${{ runner.os }}-${{ runner.arch }}-ts-py-parser
 
       - name: Install tree-sitter
         if: runner.os == 'Windows' && steps.cache-tree-sitter-restore.outputs.cache-hit != 'true'
@@ -111,6 +108,7 @@ jobs:
           key: ${{ steps.cache-tree-sitter-restore.outputs.cache-primary-key }}
 
       - name: Run tests
+        timeout-minutes: 2
         env:
           BUSTED_PROFILE: ci
         run: make test-all

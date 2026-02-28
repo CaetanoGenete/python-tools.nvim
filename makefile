@@ -87,7 +87,7 @@ test-dev: develop check-types check-formatting
 .PHONY: dev-container
 dev-container:
 	docker build -t pytools .
-	docker run -it pytools
+	docker run --rm -it pytools
 
 ### clean
 
