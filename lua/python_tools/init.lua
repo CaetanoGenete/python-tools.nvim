@@ -69,7 +69,6 @@ local function build_or_install(cwd)
 					("cmake step %d failed with exit code: %d"):format(step, result.code),
 					vim.log.levels.INFO
 				)
-				vim.notify(result.stderr, vim.log.levels.ERROR)
 				break
 			end
 		end
@@ -122,7 +121,14 @@ local function build_or_install(cwd)
 	-- TODO: Add download step if all else fails.
 end
 
-function M.setup()
+--- @class PythonToolsOptions
+--- @field install_clib boolean? If true, try install the c library if it's not already available.
+---		Defaults to `true`.
+
+---@param opts PythonToolsOptions?
+function M.setup(opts)
+	opts = opts or {}
+
 	local root =
 		vim.fs.normalize(vim.fs.abspath(debug.getinfo(1).source:match("@?(.*/)") .. "../../"))
 
@@ -139,8 +145,10 @@ function M.setup()
 		return
 	end
 
-	vim.notify("clib not installed, trying to install now.", vim.log.levels.INFO)
-	async.run(build_or_install, root)
+	if opts.install_clib == nil or opts.install_clib then
+		vim.notify("clib not installed, trying to install now.", vim.log.levels.INFO)
+		async.run(build_or_install, root)
+	end
 end
 
 return M

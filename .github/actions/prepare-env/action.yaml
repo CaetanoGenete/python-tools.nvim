@@ -40,6 +40,8 @@ runs:
 
     - name: Prepare tests
       shell: ${{ env.SHELL }}
+      env:
+        PYTOOLS_NO_INSTALL_CLIB: 1
       run: luarocks test --prepare
 
     - name: Cache luarocks dependencies
