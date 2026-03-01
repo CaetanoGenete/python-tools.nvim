@@ -75,6 +75,7 @@ test-all: compile $(PARSER_BUILD_PATH)
 
 .PHONY: develop
 develop: $(RC_PATH) compile $(PARSER_BUILD_PATH)
+	luarocks test --prepare
 
 .PHONY: format
 format:
