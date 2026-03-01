@@ -4,7 +4,7 @@ MINIMAL_INIT:=scripts/minimal_init.lua
 RC_PATH:=.luarc.json
 
 BUILD_PATH:=build
-INSTALL_PATH:=lib/
+INSTALL_PATH:=lib
 
 PARSER_VERSION=v0.25.0
 PARSER_CLONE_PATH:=.tree-sitter-python
@@ -94,5 +94,6 @@ dev-container:
 clean:
 	-$(RMDIR) $(BUILD_PATH)
 	-$(RMDIR) $(PARSER_BUILD_PATH)
+	-$(RMDIR) $(INSTALL_PATH)
 	-$(RMDIR) .tox
 	-$(RM) $(RC_PATH)
