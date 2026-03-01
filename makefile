@@ -3,7 +3,7 @@ BUSTED_PROFILE?=default
 MINIMAL_INIT:=scripts/minimal_init.lua
 RC_PATH:=.luarc.json
 
-BUILD_PATH:=./build/
+BUILD_PATH:=build
 INSTALL_PATH:=lib/
 
 PARSER_VERSION=v0.25.0

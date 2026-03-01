@@ -39,9 +39,9 @@ runs:
         key: ${{ runner.os }}-${{ runner.arch }}-luarocks-deps
 
     - name: Prepare tests
-      shell: ${{ env.SHELL }}
       env:
-        PYTOOLS_NO_INSTALL_CLIB: 1
+        PYTOOLS_NO_INSTALL_CLIB: "1"
+      shell: ${{ env.SHELL }}
       run: luarocks test --prepare
 
     - name: Cache luarocks dependencies
