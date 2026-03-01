@@ -1,6 +1,8 @@
 #include "lauxlib.h"
 #include "lua.h"
 
+#define VERSION "0.1.0"
+
 #ifdef _WIN32
   // MSVC complains about tomlc17, disable warnings.
 	#pragma warning(push, 0)
@@ -75,7 +77,7 @@ int _append_eps(lua_State *L, int list_size, const char *group, toml_datum_t tab
 				seg_start = value_str + 1;
 			}
 			++value_str;
-		};
+		}
 
 		lua_setfield(L, -2, "value");
 
@@ -87,7 +89,7 @@ int _append_eps(lua_State *L, int list_size, const char *group, toml_datum_t tab
 	return list_size;
 }
 
-int l_entry_points(lua_State *L)
+static int l_entry_points(lua_State *L)
 {
 	int nreturn = 0;
 
@@ -138,8 +140,15 @@ cleanup:
 	return nreturn;
 }
 
+static int l_version(lua_State *L)
+{
+	lua_pushstring(L, VERSION);
+	return 1;
+}
+
 const static luaL_Reg lib[] = {
   {"entry_points", l_entry_points},
+  {"version", l_version},
   {NULL, NULL},
 };
 

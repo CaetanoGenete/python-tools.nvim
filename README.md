@@ -9,14 +9,25 @@ A set of utilities for developing Neovim tooling for python.
 ```lua
 return {
 	"CaetanoGenete/python-tools.nvim",
+	build = false, -- python-tools will handle the build for you bettern than lazy.
 	lazy = true,
-	submodules = false, -- Submodules are there for dev purposes only.
 	config = true,
 }
 ```
 
 If issues occur during the build step, or there is no build step, see
 [how to build the C library](#building-the-c-library).
+
+### Options
+
+The follow options may be passed to `require("python_tools").setup(...)`:
+
+```lua
+-- Options are all defaults, no need to specify them, unless you really want to.
+{
+    install_clib = true, -- If false, does not install c library. This may result in some features not working.
+}
+```
 
 ## Dependencies
 
@@ -220,7 +231,8 @@ return {
 
 > [!WARNING]
 >
-> These steps are more likely to become obsolete, as compared to the above methods.
+> These steps are more likely to become obsolete, as compared to the above
+> methods.
 
 The library consists of two source files, both found in the `./src/` directory,
 [pyproject.c](./src/pyproject.c) and [tomlc17.c](./src/tomlc17.c). These should

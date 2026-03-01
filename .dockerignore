@@ -11,9 +11,16 @@ __pycache__
 /build-ts/
 /lib/
 
+# c intermediates
+*.obj
+*.def
+
 # clangd cache
 /.cache/
 
 # version control
 /.git/
 /.github/
+
+# TOX environment
+/.tox/

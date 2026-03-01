@@ -11,5 +11,18 @@ __pycache__
 /build-ts/
 /lib/
 
+# c intermediates
+*.obj
+*.def
+
 # clangd cache
 /.cache/
+
+# lls-addons
+/.plugins/
+
+# tree-sitter-python
+/.tree-sitter-python/
+
+# tox directories
+/.tox/

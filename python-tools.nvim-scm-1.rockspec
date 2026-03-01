@@ -4,10 +4,10 @@ rockspec_format = "3.0"
 package = "python-tools.nvim"
 version = "scm-1"
 source = {
-	url = "git+https://https://github.com/CaetanoGenete/python-tools.nvim",
+	url = "git+https://github.com/CaetanoGenete/python-tools.nvim",
 }
 dependencies = {
-	"lua==5.1",
+	"lua>=5.1",
 }
 test_dependencies = {
 	"telescope.nvim==0.1.9-1",
