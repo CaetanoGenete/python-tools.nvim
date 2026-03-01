@@ -81,7 +81,7 @@ jobs:
       - name: Build lib
         env:
           CMAKE_PREFIX_PATH: .lua/
-        run: ls && make compile
+        run: make compile
 
       - name: Restore tree-sitter-python-parser
         id: cache-tree-sitter-restore
