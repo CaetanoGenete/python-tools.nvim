@@ -2,6 +2,7 @@ local M = {}
 
 local async = require("python_tools._async")
 
+---@nodiscard
 ---@param cmd string
 ---@param exts string[]
 ---@return string?
@@ -125,6 +126,8 @@ end
 --- @field install_clib boolean? If true, try install the c library if it's not already available.
 ---		Defaults to `true`.
 
+local MIN_CLIB_VERSION = "0.1.0"
+
 ---@param opts PythonToolsOptions?
 function M.setup(opts)
 	opts = opts or {}
@@ -140,15 +143,17 @@ function M.setup(opts)
 		.. vim.fs.joinpath(root, INSTALL_PATH, "?.so")
 		.. ";"
 
-	local ok = pcall(require, "python_tools.meta._pyproject")
-	if ok then
+	if opts.install_clib == false then
 		return
 	end
 
-	if opts.install_clib == nil or opts.install_clib then
-		vim.notify("clib not installed, trying to install now.", vim.log.levels.INFO)
-		async.run(build_or_install, root)
+	local ok, pyproject = pcall(require, "python_tools.meta._pyproject")
+	if ok and vim.version.cmp(pyproject.version(), MIN_CLIB_VERSION) >= 0 then
+		return
 	end
+
+	vim.notify("clib not installed or outdated, trying to install now.", vim.log.levels.INFO)
+	async.run(build_or_install, root)
 end
 
 return M
