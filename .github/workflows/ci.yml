@@ -79,6 +79,8 @@ jobs:
         run: uv tool install tox --with tox-uv
 
       - name: Build lib
+        env:
+          CMAKE_PREFIX_PATH: .lua/
         run: make compile
 
       - name: Restore tree-sitter-python-parser
