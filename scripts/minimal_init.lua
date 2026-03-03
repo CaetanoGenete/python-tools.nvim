@@ -18,14 +18,7 @@ if not ok then
 	print("Could not load TS parser for python!")
 end
 
-local install_clib = true
-if os.getenv("PYTOOLS_NO_INSTALL_CLIB") then
-	install_clib = false
-end
-
-require("python_tools").setup({
-	install_clib = install_clib,
-})
+require("python_tools").setup()
 
 -- Prevent messing up local SHADA during tests
 vim.opt.shadafile = "NONE"

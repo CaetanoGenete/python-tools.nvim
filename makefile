@@ -30,7 +30,7 @@ $(BUILD_PATH):
 
 .PHONY: compile
 compile: $(BUILD_PATH)
-	cmake --build $(BUILD_PATH) --config release
+	cmake --build $(BUILD_PATH) --config release -j 4
 	cmake --install $(BUILD_PATH) --prefix $(INSTALL_PATH)
 
 ### ts parser targets
@@ -40,7 +40,7 @@ $(PARSER_CLONE_PATH):
 
 $(PARSER_BUILD_PATH): $(PARSER_CLONE_PATH)
 	cmake -S $(PARSER_CLONE_PATH) -B $@ -DCMAKE_BUILD_TYPE=release
-	cmake --build $(PARSER_BUILD_PATH) --config release
+	cmake --build $(PARSER_BUILD_PATH) --config release -j 4
 	cmake --install $(PARSER_BUILD_PATH) --prefix $(PARSER_INSTALL_PATH)
 
 ### Lint targets

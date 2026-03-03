@@ -188,6 +188,8 @@ describe("find_entry_points", function()
 			{ picker_opts }
 		)
 
+		local time_since_last_selection = os.clock() / 1000
+
 		-- Wait for the picker to become ready.
 		assert.poll(function()
 			local result = tutils.rpc.exec_lua(nvim, "picker_current_selection.lua")
@@ -196,13 +198,21 @@ describe("find_entry_points", function()
 
 		-- If navigating faster than debounce duration nothing should be loaded!
 		for _ = 1, 3 do
-			vim.wait(picker_opts.debounce_duration_ms - 40)
+			local elapsed_time = (os.clock() / 1000) - time_since_last_selection
+			local remaining_time = picker_opts.debounce_duration_ms - elapsed_time
+			assert(remaining_time > 20, "Too much time has passed!")
+
+			if remaining_time > 50 then
+				vim.wait(remaining_time - 50)
+			end
+
 			local result = assert(tutils.rpc.exec_lua(nvim, "picker_current_selection.lua"))
 
 			assert.is_nil(result.filename)
 			assert.is_nil(result.lnum)
 
 			vim.rpcrequest(nvim, "nvim_input", "<Up>")
+			time_since_last_selection = os.clock() / 1000
 		end
 
 		---@type EntryPointEntry[]
