@@ -6,10 +6,12 @@ A set of utilities for developing Neovim tooling for python.
 
 ### Lazy.nvim
 
+If using lazy, installation should be as simple as adding the following plugin
+spec entry:
+
 ```lua
 return {
 	"CaetanoGenete/python-tools.nvim",
-	build = false, -- python-tools will handle the build for you bettern than lazy.
 	lazy = true,
 	config = true,
 }
@@ -18,16 +20,21 @@ return {
 If issues occur during the build step, or there is no build step, see
 [how to build the C library](#building-the-c-library).
 
-### Options
+### Other package manager
 
-The follow options may be passed to `require("python_tools").setup(...)`:
+For other package managers, *python_tools* expects:
 
-```lua
--- Options are all defaults, no need to specify them, unless you really want to.
-{
-    install_clib = true, -- If false, does not install c library. This may result in some features not working.
-}
-```
+1. All Dependencies to be available (See [Dependencies](#dependencies)].
+2. (Optional) The C library to be installed via
+   `require("python_tools").install_library`, or manually (See
+    [how to build the C library](#building-the-c-library)).
+3. (Optional) `require("python_tools").setup()` to be called (recommended if
+   the C library is installed).
+
+It is recommended to run `require("python_tools").setup()` before using this
+library. Setup, amongst other things, will verify the c library is correctly
+installed and usable. Failure to install the C library will **not** leave the
+plugin unusable, but may result in some features erring.
 
 ## Dependencies
 
@@ -110,14 +117,14 @@ require("python_tools.pickers").find_entry_points({
 
 The `python_tools.meta.entry_points` module can be used to easily execute an
 entry-point in a debug context. Since _nvim-dap_ supports supplying threads as
-arguments, `aentry_points_ts` can be used to select all the entry points defined
-by the project.
+arguments, the `aentry_points` function can be used to select all the entry
+points defined by the project.
 
 > [!NOTE]
 >
-> Here it is preferable to use `aentry_points` to limit the returned entry
-> points to those defined by the project. `aentry_points_importlib` will also
-> list console scripts provided by _setuptools_, _black_, and other libraries.
+> Here it is preferable to use `aentry_points` to limit the returned results
+> to those defined by the project. `aentry_points_importlib` will also list
+> console scripts provided by _setuptools_, _black_, and other libraries.
 
 ```lua
 ---@param dap_coro thread
@@ -193,11 +200,51 @@ _python-tools_ provides a C99 library for reading entry-points from
 _pyproject.toml_ files. If Lazy does not build this for you (or fails), it may
 be necessary to compile it from source.
 
+### Invoking the build function
+
+Before all else, attempt invoking the build function defined at `python-tools`
+module:
+
+```lua
+require("python_tools").install_library(false)
+```
+
+This will automatically attempt all the steps below. If this step fails,
+consider reading onwards.
+
+### Using CMake
+
+The project directory defines a [CMakeLists.txt](https://cmake.org/) file to
+assist building. A typical build flow is as follows (executed from the plugin's
+root directory, where the top level `CMakeLists.txt` is found):
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=release
+cmake --build build --config release
+cmake --install build --prefix ./lib/
+```
+
 ### Using Luarocks
 
-If [luarocks](https://luarocks.org/) is installed, by appropriately setting the
-_build_ field of the Lazy plugin spec, Lazy _v11+_ can be instructed to use
-luarocks to compile the library.
+> [!WARNING]
+>
+> This approach is not recommended, as it may later conflict with the typically
+> installed binary.
+>
+> If necessary, try relying on Lazy's hererocks implementation. Unlike
+> installing through luarocks directly, purging the plugin will likewise purge
+> the c library binary.
+
+
+If [luarocks](https://luarocks.org/) is installed, the c-library may be built
+and installed by running the following at the project's root directory:
+
+```bash
+luarocks build
+```
+
+If using lazy, by appropriately setting the _build_ field of the Lazy plugin
+spec, Lazy _v11+_ can be instructed to use luarocks to compile the library.
 
 > [!IMPORTANT]
 >
@@ -213,19 +260,6 @@ return {
 }
 ```
 
-### Using CMake
-
-If [cmake](https://cmake.org/) is available, it should be as simple as setting
-the _build_ field of the Lazy plugin spec to the following:
-
-```lua
--- Lazy plugin spec:
-return {
-	"CaetanoGenete/python-tools.nvim",
-	build = "cmake -S . -B build -DCMAKE_BUILD_TYPE=release && cmake --build build --config release && cmake --install build --prefix ./lib/",
-	...,
-}
-```
 
 ### Manual compilation
 
