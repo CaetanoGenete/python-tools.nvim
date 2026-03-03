@@ -20,9 +20,9 @@ return {
 If issues occur during the build step, or there is no build step, see
 [how to build the C library](#building-the-c-library).
 
-### Other package manager
+### Other package managers
 
-For other package managers, *python_tools* expects:
+*python_tools* expects:
 
 1. All Dependencies to be available (See [Dependencies](#dependencies)].
 2. (Optional) The C library to be installed via
@@ -32,7 +32,7 @@ For other package managers, *python_tools* expects:
    the C library is installed).
 
 It is recommended to run `require("python_tools").setup()` before using this
-library. Setup, amongst other things, will verify the c library is correctly
+plugin. Setup, amongst other things, will verify the C library is correctly
 installed and usable. Failure to install the C library will **not** leave the
 plugin unusable, but may result in some features erring.
 
@@ -102,8 +102,8 @@ require("python_tools.pickers").find_entry_points({
 ### List entry points relative to the current buffer
 
 By default, when `use_importlib=false`, the _current working directory_ is used
-to scan for entrypoints. However, in large mono repos, to prevent having to
-constanly switch directory, it may be convenient to list entry points relative
+to scan for entrypoints. However, in large mono repos, to prevent excessively
+switching working directory, it may be convenient to list entry points relative
 to the _current buffer_. This can be done via the `search_dir` option.
 
 ```lua
@@ -116,15 +116,15 @@ require("python_tools.pickers").find_entry_points({
 ### Debugging entry points (using [nvim-dap](https://github.com/mfussenegger/nvim-dap))
 
 The `python_tools.meta.entry_points` module can be used to easily execute an
-entry-point in a debug context. Since _nvim-dap_ supports supplying threads as
-arguments, the `aentry_points` function can be used to select all the entry
-points defined by the project.
+entry-point with a debugger attached. Since _nvim-dap_ supports supplying
+threads as arguments, the `aentry_points` function can be used to select all
+the entry points defined by the project.
 
 > [!NOTE]
 >
 > Here it is preferable to use `aentry_points` to limit the returned results
 > to those defined by the project. `aentry_points_importlib` will also list
-> console scripts provided by _setuptools_, _black_, and other libraries.
+> console_scripts provided by _setuptools_, _black_, and other libraries.
 
 ```lua
 ---@param dap_coro thread
@@ -197,26 +197,26 @@ next(iter(eps)).load()()
 > importlib.
 
 _python-tools_ provides a C99 library for reading entry-points from
-_pyproject.toml_ files. If Lazy does not build this for you (or fails), it may
-be necessary to compile it from source.
+_pyproject.toml_ files. If not using Lazy or, if Lazy does not build this for
+you (or fails); it may be necessary to compile from source.
 
 ### Invoking the build function
 
-Before all else, attempt invoking the build function defined at `python-tools`
-module:
+Before all else, attempt invoking the build function defined at the
+`python-tools` module:
 
 ```lua
-require("python_tools").install_library(false)
+require("python_tools").install_library(true)
 ```
 
-This will automatically attempt all the steps below. If this step fails,
-consider reading onwards.
+This will automatically attempt all the steps below. If this fails, only then
+consider further options.
 
 ### Using CMake
 
-The project directory defines a [CMakeLists.txt](https://cmake.org/) file to
-assist building. A typical build flow is as follows (executed from the plugin's
-root directory, where the top level `CMakeLists.txt` is found):
+The project defines a [CMakeLists.txt](https://cmake.org/) file to assist
+building. A typical cmake install pipeline is as follows (executed from the
+plugin's root directory, where the top level `CMakeLists.txt` is found):
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=release
@@ -233,7 +233,7 @@ cmake --install build --prefix ./lib/
 >
 > If necessary, try relying on Lazy's hererocks implementation. Unlike
 > installing through luarocks directly, purging the plugin will likewise purge
-> the c library binary.
+> the C library binary.
 
 
 If [luarocks](https://luarocks.org/) is installed, the c-library may be built
@@ -243,7 +243,7 @@ and installed by running the following at the project's root directory:
 luarocks build
 ```
 
-If using lazy, by appropriately setting the _build_ field of the Lazy plugin
+If using Lazy, by appropriately setting the _build_ field of the Lazy plugin
 spec, Lazy _v11+_ can be instructed to use luarocks to compile the library.
 
 > [!IMPORTANT]

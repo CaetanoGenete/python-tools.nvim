@@ -6,4 +6,5 @@ return {
 			coroutine.yield(msg)
 		end)
 	end,
+	config = true,
 }

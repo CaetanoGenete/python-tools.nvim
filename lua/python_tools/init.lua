@@ -34,10 +34,29 @@ end
 
 ---@param msg BuildMessage
 local function echo_message_handler(msg)
-	vim.notify(msg.msg, msg.level)
+	vim.notify("python_tools:" .. msg.msg, msg.level)
 end
 
 local MIN_CLIB_VERSION = "0.1.0"
+
+---@return boolean
+local function verify_clib()
+	local ok, pyproject = pcall(require, "python_tools.meta._pyproject")
+	if not ok then
+		return false
+	end
+
+	local version_ok, clib_version = pcall(pyproject.version)
+	if not version_ok then
+		return false
+	end
+
+	if vim.version.cmp(clib_version, MIN_CLIB_VERSION) < 0 then
+		return false
+	end
+
+	return true
+end
 
 ---Attempts to build the c library for python_tools from source.
 ---
@@ -46,24 +65,20 @@ local MIN_CLIB_VERSION = "0.1.0"
 function M.install_library(force, message_callback)
 	message_callback = message_callback or echo_message_handler
 
-	if force == nil or not force then
-		local ok, pyproject = pcall(require, "python_tools.meta._pyproject")
-		if ok then
-			local version_ok, clib_version = pcall(pyproject.version)
-			if version_ok and vim.version.cmp(clib_version, MIN_CLIB_VERSION) >= 0 then
-				message_callback({
-					msg = "c library already installed and at correct version, nothing to do...",
-					level = vim.log.levels.INFO,
-				})
-				return
-			end
-
+	if force == nil or force == false then
+		if verify_clib() then
 			message_callback({
-				msg = "c library out of date, installing...",
+				msg = "c library already installed and at correct version, nothing to do...",
 				level = vim.log.levels.INFO,
 			})
+			return
 		end
 	end
+
+	message_callback({
+		msg = "c library missing or out of date, installing...",
+		level = vim.log.levels.INFO,
+	})
 
 	local cwd = root_dir()
 
@@ -170,7 +185,13 @@ function M.install_library(force, message_callback)
 	-- TODO: Add download step if all else fails.
 end
 
-function M.setup()
+---@class PythonToolsOptions
+---@field verify_clibrary boolean?
+
+---@param opts PythonToolsOptions?
+function M.setup(opts)
+	opts = opts or {}
+
 	local root = root_dir()
 	-- Setup package path to be able to find c libraries
 	package.cpath = package.cpath
@@ -179,6 +200,17 @@ function M.setup()
 		.. ";"
 		.. vim.fs.joinpath(root, INSTALL_PATH, "?.so")
 		.. ";"
+
+	if opts.verify_clibrary == false then
+		return
+	end
+
+	if not verify_clib() then
+		vim.notify(
+			"python_tools: C library is not installed, some features may not work!",
+			vim.log.levels.WARN
+		)
+	end
 end
 
 return M
